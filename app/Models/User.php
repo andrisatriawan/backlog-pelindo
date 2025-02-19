@@ -19,13 +19,16 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'nama',
         'nip',
-        'username',
         'password',
         'is_active',
         'unit_id',
-        'position_id',
+        'divisi_id',
+        'departemen_id',
+        'jabatan_id',
+        'deleted',
+        'deleted_at'
     ];
 
     /**
@@ -46,4 +49,24 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function unit()
+    {
+        return $this->hasOne(Unit::class, 'id', 'unit_id');
+    }
+
+    public function divisi()
+    {
+        return $this->hasOne(Divisi::class, 'id', 'divisi_id');
+    }
+
+    public function departemen()
+    {
+        return $this->hasOne(Departemen::class, 'id', 'departemen_id');
+    }
+
+    public function jabatan()
+    {
+        return $this->hasOne(Jabatan::class, 'id', 'jabatan_id');
+    }
 }

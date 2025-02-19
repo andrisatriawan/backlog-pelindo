@@ -14,18 +14,19 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $permissions = [
+        // Permission Admin
+        $permissionsAdmin = [
             'create user',
             'read user',
             'update user',
-            'delete user'
+            'delete user',
         ];
 
-        $role = Role::findOrCreate('admin', 'api');
+        $roleAdmin = Role::findOrCreate('admin', 'api');
 
-        foreach ($permissions as $row) {
-            $permission = Permission::findOrCreate($role, 'api');
-            $role->givePermissionTo($permission);
+        foreach ($permissionsAdmin as $row) {
+            $permission = Permission::findOrCreate($row, 'api');
+            $roleAdmin->givePermissionTo($permission);
         }
     }
 }

@@ -2,19 +2,23 @@
 
 namespace Database\Seeders;
 
+use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 
-class UserSeeder extends Seeder
+class UnitSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
+        $unit = Unit::create([
+            'nama' => 'Regional Sumatera Utara'
+        ]);
+
         $admin = User::firstOrCreate([
             'nip' => '123456',
         ], [
@@ -23,6 +27,7 @@ class UserSeeder extends Seeder
             'is_active' => 1
         ]);
 
-        $admin->assignRole('admin');
+        $admin->unit_id = $unit->id;
+        $admin->save();
     }
 }

@@ -14,12 +14,15 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try {
-            $request->only(['username', 'password']);
+            $request->validate([
+                'nip' => 'required',
+                'password' => 'required|min:6'
+            ]);
 
-            $user = User::where('username', $request->username)->first();
+            $user = User::where('nip', $request->nip)->first();
 
             if (!$user || !Hash::check($request->password, $user->password)) {
-                throw new Exception('Unauthorized, username or password is wrong!', 401);
+                throw new Exception('Unauthorized, nip or password is wrong!', 401);
             }
 
             $expires = now()->addDay();

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\api\AuthController;
+use App\Http\Controllers\api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,8 +20,8 @@ Route::post('v1/login', [AuthController::class, 'login']);
 Route::post('v1/refresh-token', [AuthController::class, 'refreshToken']);
 
 Route::middleware('auth.api')->prefix('v1')->group(function () {
-    Route::get('user', function () {
-        return auth()->user();
+    Route::prefix('user')->group(function () {
+        Route::get('profile', [UserController::class, 'profile']);
     });
 
     Route::post('logout', [AuthController::class, 'logout']);
