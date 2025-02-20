@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\api\AuthController;
+use App\Http\Controllers\api\LhaController;
 use App\Http\Controllers\api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,11 @@ Route::post('v1/refresh-token', [AuthController::class, 'refreshToken']);
 Route::middleware('auth.api')->prefix('v1')->group(function () {
     Route::prefix('user')->group(function () {
         Route::get('profile', [UserController::class, 'profile']);
+    });
+
+    Route::prefix('lha')->group(function () {
+        Route::get('/', [LhaController::class, 'index']);
+        Route::post('/save', [LhaController::class, 'save']);
     });
 
     Route::post('logout', [AuthController::class, 'logout']);
