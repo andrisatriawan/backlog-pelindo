@@ -21,4 +21,8 @@ class Divisi extends Model
     {
         return $this->hasOne(Unit::class, 'unit_id');
     }
+    public function departemen()
+    {
+        return $this->hasMany(Departemen::class, 'divisi_id', 'id');
+    }
 }

@@ -15,4 +15,9 @@ class Unit extends Model
         'deleted',
         'deleted_at'
     ];
+
+    public function divisi()
+    {
+        return $this->hasMany(Divisi::class, 'unit_id', 'id');
+    }
 }
