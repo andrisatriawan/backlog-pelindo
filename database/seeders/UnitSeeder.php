@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Unit;
 use App\Models\User;
+use Faker\Factory as Faker;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -15,9 +16,13 @@ class UnitSeeder extends Seeder
      */
     public function run(): void
     {
-        $unit = Unit::create([
-            'nama' => 'Regional Sumatera Utara'
-        ]);
+        $faker = Faker::create();
+
+        for ($i = 0; $i < 20; $i++) {
+            $unit = Unit::create([
+                'nama' => $faker->sentence
+            ]);
+        }
 
         $admin = User::firstOrCreate([
             'nip' => '123456',
@@ -27,7 +32,7 @@ class UnitSeeder extends Seeder
             'is_active' => 1
         ]);
 
-        $admin->unit_id = $unit->id;
+        $admin->unit_id = 1;
         $admin->save();
     }
 }
