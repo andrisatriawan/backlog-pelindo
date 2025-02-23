@@ -67,7 +67,11 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
 
     Route::prefix('lha')->group(function () {
         Route::get('/', [LhaController::class, 'index']);
+        Route::get('/{id}', [LhaController::class, 'show']); // Get single
         Route::post('/create', [LhaController::class, 'save']);
+        Route::put('/{id}', [LhaController::class, 'update']); // Update
+        Route::delete('/{id}', [LhaController::class, 'destroy']); // Soft delete
+        Route::put('/restore/{id}', [LhaController::class, 'restore']); // Restore deleted unit
     });
 
     Route::post('logout', [AuthController::class, 'logout']);
