@@ -44,6 +44,31 @@ class LhaController extends Controller
         }
     }
 
+    // 🔹 Get Single LHA by ID (READ)
+    public function show($id)
+    {
+        try {
+
+            $lha = Lha::find($id);
+            if (!$lha || $lha->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => true,
+                'data' => $lha
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function save(Request $request)
     {
         try {
@@ -82,15 +107,15 @@ class LhaController extends Controller
         }
     }
 
-    // 🔹 Update Unit (UPDATE)
+    // 🔹 Update LHA (UPDATE)
     public function update(Request $request, $id)
     {
         try {
-            $unit = Lha::findOrFail($id);
-            if (!$unit || $unit->deleted == 1) {
+            $lha = Lha::findOrFail($id);
+            if (!$lha || $lha->deleted == 1) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Unit tidak ditemukan'
+                    'message' => 'LHA tidak ditemukan'
                 ], 404);
             }
 
@@ -101,18 +126,71 @@ class LhaController extends Controller
                 'deskripsi' => 'required'
             ]);
 
-            $unit->update($validated);
+            $lha->update($validated);
 
             return response()->json([
                 'status' => true,
-                'message' => 'Unit updated successfully',
-                'data' => $unit
+                'message' => 'LHA updated successfully',
+                'data' => $lha
             ]);
         } catch (ValidationException $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->errors()
             ], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // 🔹 Soft Delete LHA (DELETE)
+    public function destroy($id)
+    {
+        try {
+            $lha = Lha::find($id);
+            if (!$lha || $lha->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA tidak ditemukan'
+                ], 404);
+            }
+
+            $lha->update(['deleted' => 1]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'LHA berhasil dihapus'
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // 🔹 Restore Deleted LHA (RESTORE)
+    public function restore($id)
+    {
+        try {
+            $lha = Lha::find($id);
+            if (!$lha || $lha->deleted == 0) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA tidak ditemukan atau sudah aktif'
+                ], 404);
+            }
+
+            $lha->update(['deleted' => 0]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'LHA berhasil diaktifkan kembali',
+                'data' => $lha
+            ]);
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => false,
