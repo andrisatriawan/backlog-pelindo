@@ -79,7 +79,7 @@ class TemuanController extends Controller
         }
     }
 
-    public function findByUnitId($id)
+    public function findByLhaId($id)
     {
         try {
             $temuan = Temuan::findOrfail($id);
@@ -161,10 +161,10 @@ class TemuanController extends Controller
 
             $validated = $request->validate([
                 'nomor' => 'required',
-                'unit_id' => [
+                'lha_id' => [
                     'required',
                     'integer',
-                    Rule::exists('unit', 'id')->where(function ($query) {
+                    Rule::exists('lha', 'id')->where(function ($query) {
                         $query->where('deleted', 0);
                     }),
                 ],
