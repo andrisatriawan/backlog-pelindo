@@ -14,6 +14,7 @@ class Lha extends Model
         'user_id',
         'no_lha',
         'judul',
+        'tanggal',
         'periode',
         'deskripsi',
         'status',

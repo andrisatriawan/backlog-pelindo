@@ -17,16 +17,30 @@ class LhaController extends Controller
             // if ($request->has('no_lha')) {
             // }
 
-            if ($request->has('length')) {
-                $length = $request->length;
+            if ($request->has('page_size')) {
+                $length = $request->page_size;
             }
 
             $data = $lha->paginate($length);
 
+            $customData = collect($data->items())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'judul' => $item->judul,
+                    'no_lha' => $item->no_lha,
+                    'periode' => $item->periode,
+                    'status' => $item->status,
+                    'last_stage' => $item->last_stage,
+                    'status_name' => STATUS_LHA[$item->status],
+                    'stage_name' => '' // Contoh fungsi tambahan
+                ];
+            });
+
+
             return response()->json([
                 'status' => true,
                 'message' => 'Data tersedia!',
-                'data' => $data->items(),
+                'data' => $customData,
                 'pagination' => [
                     'current_page' => $data->currentPage(),
                     'total' => $data->total(),
@@ -83,6 +97,7 @@ class LhaController extends Controller
 
             $lha->no_lha = $request->no_lha;
             $lha->judul = $request->judul;
+            $lha->tanggal = $request->tanggal;
             $lha->periode = $request->periode;
             $lha->deskripsi = $request->deskripsi;
             $lha->last_stage = 0;
@@ -122,6 +137,7 @@ class LhaController extends Controller
             $validated = $request->validate([
                 'no_lha' => 'required',
                 'judul' => 'required',
+                'tanggal' => 'required',
                 'periode' => 'required',
                 'deskripsi' => 'required'
             ]);
