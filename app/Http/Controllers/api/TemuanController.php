@@ -24,7 +24,7 @@ class TemuanController extends Controller
 
             if ($request->has('keyword')) {
                 $keyword = strtolower($request->keyword);
-                $temuan->whereRaw('LOWER(nama) LIKE ?', ["%{$keyword}%"]);
+                $temuan->whereRaw('LOWER(nomor) LIKE ?', ["%{$keyword}%"]);
             }
 
             $temuan->orderBy('id', 'ASC');
