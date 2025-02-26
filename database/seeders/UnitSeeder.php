@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Divisi;
 use App\Models\Unit;
 use App\Models\User;
 use Faker\Factory as Faker;
@@ -19,8 +20,15 @@ class UnitSeeder extends Seeder
         $faker = Faker::create();
 
         for ($i = 0; $i < 20; $i++) {
-            $unit = Unit::create([
+            Unit::create([
                 'nama' => $faker->sentence
+            ]);
+        }
+
+        for ($i = 0; $i < 20; $i++) {
+            Divisi::create([
+                'unit_id' => $faker->numberBetween(1, 20),
+                'nama' => $faker->sentence,
             ]);
         }
 

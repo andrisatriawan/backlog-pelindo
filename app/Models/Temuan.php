@@ -35,7 +35,7 @@ class Temuan extends Model
 
     public function divisi()
     {
-        return $this->hasOne(Divisi::class, 'divisi_id', 'id');
+        return $this->hasOne(Divisi::class, 'id', 'divisi_id');
     }
 
     public function departemen()

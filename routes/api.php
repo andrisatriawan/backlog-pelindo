@@ -72,6 +72,7 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::put('/{id}', [LhaController::class, 'update']); // Update
         Route::delete('/{id}', [LhaController::class, 'destroy']); // Soft delete
         Route::put('/restore/{id}', [LhaController::class, 'restore']); // Restore deleted unit
+        Route::get('/details/{id}', [LhaController::class, 'details']);
     });
 
     Route::post('logout', [AuthController::class, 'logout']);

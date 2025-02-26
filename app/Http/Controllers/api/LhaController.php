@@ -71,9 +71,22 @@ class LhaController extends Controller
                 ], 404);
             }
 
+
+            $customData = [
+                'id' => $lha->id,
+                'judul' => $lha->judul,
+                'no_lha' => $lha->no_lha,
+                'periode' => $lha->periode,
+                'deskripsi' => $lha->deskripsi,
+                'status' => $lha->status,
+                'last_stage' => $lha->last_stage,
+                'status_name' => STATUS_LHA[$lha->status] ?? '-',
+                'stage_name' => '-'
+            ];
+
             return response()->json([
                 'status' => true,
-                'data' => $lha
+                'data' => $customData
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -211,6 +224,61 @@ class LhaController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function details($id)
+    {
+        try {
+            $lha = Lha::findOrFail($id);
+
+            $temuan = $lha->temuan->groupBy('divisi_id');
+            $temuan = $temuan->map(function ($items, $divisiId) {
+                return [
+                    'divisi_id' => $divisiId,
+                    'nama_divisi' => $items->first()->divisi->nama ?? 'Unknown',
+                    'data' => $items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'nomor' => $item->nomor,
+                            'judul' => $item->judul,
+                            'deskripsi' => $item->deskripsi,
+                            'status' => $item->status,
+                            'rekomendasi' => $item->rekomendasi->map(function ($item) {
+                                return [
+                                    'id' => $item->id,
+                                    'nomor' => $item->nomor,
+                                    'deskripsi' => $item->deskripsi,
+                                    'batas_tanggal' => $item->batas_tanggal
+                                ];
+                            })
+                        ];
+                    })
+                ];
+            });
+            $response = [
+                'id' => $lha->id,
+                'judul' => $lha->judul,
+                'no_lha' => $lha->no_lha,
+                'tanggal' => $lha->tanggal,
+                'periode' => $lha->periode,
+                'deskripsi' => $lha->deskripsi,
+                'status' => $lha->status,
+                'last_stage' => $lha->last_stage,
+                'status_name' => STATUS_LHA[$lha->status] ?? '-',
+                'stage_name' => '-',
+                'temuan' => $temuan
+            ];
+
+            return response()->json([
+                'status' => true,
+                'data' => $response
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
             ], 500);
         }
     }
