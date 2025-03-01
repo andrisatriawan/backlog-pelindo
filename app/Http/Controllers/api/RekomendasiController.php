@@ -145,29 +145,50 @@ class RekomendasiController extends Controller
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create() {}
-
-
-
-
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        //
+        try {
+            $rekomendasi = Rekomendasi::findOrFail($id);
+            if (!$rekomendasi || $rekomendasi->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Rekomendasi tidak ditemukan'
+                ], 404);
+            }
+
+            $validated = $request->validate([
+                'nomor' => 'required',
+                'temuan_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists('temuan', 'id')->where(function ($query) {
+                        $query->where('deleted', 0);
+                    }),
+                ],
+            ]);
+
+            $rekomendasi->update($validated);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Rekomendasi berhasil diubah',
+                'data' => $rekomendasi
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -175,6 +196,53 @@ class RekomendasiController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $rekomendasi = Rekomendasi::find($id);
+            if (!$rekomendasi || $rekomendasi->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Rekomendasi tidak ditemukan'
+                ], 404);
+            }
+
+            $rekomendasi->update(['deleted' => 1]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Rekomendasi berhasil dihapus'
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // 🔹 Restore Deleted Temuan (RESTORE)
+    public function restore($id)
+    {
+        try {
+            $rekomendasi = Rekomendasi::find($id);
+            if (!$rekomendasi || $rekomendasi->deleted == 0) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Rekomendasi tidak ditemukan atau sudah aktif'
+                ], 404);
+            }
+
+            $rekomendasi->update(['deleted' => 0]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Rekomendasi berhasil diaktifkan kembali',
+                'data' => $rekomendasi
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

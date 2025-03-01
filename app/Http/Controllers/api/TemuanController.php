@@ -55,7 +55,7 @@ class TemuanController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Display the specified resource.
      */
     public function show($id)
     {
@@ -140,10 +140,6 @@ class TemuanController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Display the specified resource.
-     */
 
     /**
      * Update the specified resource in storage.
