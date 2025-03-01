@@ -8,6 +8,7 @@ use App\Http\Controllers\api\DivisiController;
 use App\Http\Controllers\api\JabatanController;
 use App\Http\Controllers\api\DepartemenController;
 use App\Http\Controllers\api\LhaController;
+use App\Http\Controllers\api\RekomendasiController;
 use App\Http\Controllers\api\TemuanController;
 
 /*
@@ -84,6 +85,16 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::put('/{id}', [TemuanController::class, 'update']); // Update
         Route::delete('/{id}', [TemuanController::class, 'destroy']); // Soft delete
         Route::put('/restore/{id}', [TemuanController::class, 'restore']); // Restore deleted unit
+    });
+
+    Route::prefix('rekomendasi')->group(function () {
+        Route::get('/', [RekomendasiController::class, 'index']); // Get all
+        Route::get('/{id}', [RekomendasiController::class, 'show']); // Get single
+        Route::get('/find-by-temuan-id/{id}', [RekomendasiController::class, 'findByTemuanId']); // Get single
+        Route::post('/', [RekomendasiController::class, 'store']); // Create
+        Route::put('/{id}', [RekomendasiController::class, 'update']); // Update
+        Route::delete('/{id}', [RekomendasiController::class, 'destroy']); // Soft delete
+        Route::put('/restore/{id}', [RekomendasiController::class, 'restore']); // Restore deleted unit
     });
 
     Route::post('logout', [AuthController::class, 'logout']);
