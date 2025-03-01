@@ -5,6 +5,8 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Models\Rekomendasi;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class RekomendasiController extends Controller
 {
@@ -18,15 +20,15 @@ class RekomendasiController extends Controller
             if ($request->has('page_size')) {
                 $length = $request->page_size;
             }
-            $temuan = Rekomendasi::where('deleted', '!=', '1');
+            $rekomendasi = Rekomendasi::where('deleted', '!=', '1');
 
             if ($request->has('keyword')) {
                 $keyword = strtolower($request->keyword);
-                $temuan->whereRaw('LOWER(nomor) LIKE ?', ["%{$keyword}%"]);
+                $rekomendasi->whereRaw('LOWER(nomor) LIKE ?', ["%{$keyword}%"]);
             }
 
-            $temuan->orderBy('id', 'ASC');
-            $data = $temuan->paginate($length);
+            $rekomendasi->orderBy('id', 'ASC');
+            $data = $rekomendasi->paginate($length);
 
             return response()->json([
                 'status' => true,
@@ -53,11 +55,57 @@ class RekomendasiController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display the specified resource.
      */
-    public function create()
+    public function show($id)
     {
-        //
+        try {
+            $rekomendasi = Rekomendasi::find($id);
+            if (!$rekomendasi || $rekomendasi->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Rekomendasi tidak ditemukan'
+                ], 404);
+            }
+            return response()->json([
+                'status' => true,
+                'data' => $rekomendasi
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    /**
+     * Display the specified resource by temuan_id.
+     */
+    public function findByTemuanId($id)
+    {
+        try {
+            $rekomendasi = Rekomendasi::findOrfail($id);
+            if (!$rekomendasi || $rekomendasi->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Rekomendasi tidak ditemukan'
+                ], 404);
+            }
+
+            $lha = $rekomendasi->lha()->where('deleted', 0)->get();
+
+            return response()->json([
+                'status' => true,
+                'data' => $lha
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -65,16 +113,46 @@ class RekomendasiController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $validated = $request->validate([
+                'nomor' => 'required',
+                'temuan_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists('temuan', 'id')->where(function ($query) {
+                        $query->where('deleted', 0);
+                    }),
+                ],
+            ]);
+
+            $rekomendasi = Rekomendasi::create($validated);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Rekomendasi berhasil ditambahkan',
+                'data' => $rekomendasi
+            ], 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Display the specified resource.
+     * Show the form for creating a new resource.
      */
-    public function show(string $id)
-    {
-        //
-    }
+    public function create() {}
+
+
+
+
 
     /**
      * Show the form for editing the specified resource.
