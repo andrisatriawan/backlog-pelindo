@@ -30,7 +30,7 @@ class Temuan extends Model
 
     public function unit()
     {
-        return $this->hasOne(Unit::class, 'unit_id', 'id');
+        return $this->hasOne(Unit::class, 'id', 'unit_id');
     }
 
     public function divisi()
@@ -40,7 +40,7 @@ class Temuan extends Model
 
     public function departemen()
     {
-        return $this->hasOne(Departemen::class, 'departemen_id', 'id');
+        return $this->hasOne(Departemen::class, 'id', 'departemen_id');
     }
 
     public function rekomendasi()

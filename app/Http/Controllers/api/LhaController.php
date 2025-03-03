@@ -21,6 +21,12 @@ class LhaController extends Controller
                 $length = $request->page_size;
             }
 
+            if ($request->has('keyword')) {
+                $keyword = strtolower($request->keyword);
+                $lha->whereRaw('LOWER(no_lha) LIKE ?', ["%{$keyword}%"])
+                    ->orWhereRaw('LOWER(judul) LIKE ?', ["%{$keyword}%"]);
+            }
+
             $data = $lha->paginate($length);
 
             $customData = collect($data->items())->map(function ($item) {
@@ -250,7 +256,9 @@ class LhaController extends Controller
                                     'id' => $item->id,
                                     'nomor' => $item->nomor,
                                     'deskripsi' => $item->deskripsi,
-                                    'batas_tanggal' => $item->batas_tanggal
+                                    'batas_tanggal' => $item->batas_tanggal,
+                                    'status' => $item->status,
+                                    'status_name' => STATUS_REKOMENDASI[$item->status] ?? '-',
                                 ];
                             })
                         ];

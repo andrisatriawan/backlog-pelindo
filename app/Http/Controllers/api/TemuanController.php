@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Lha;
 use App\Models\Temuan;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -79,22 +81,47 @@ class TemuanController extends Controller
         }
     }
 
-    public function findByLhaId($id)
+    public function findByLhaId(Request $request, $id)
     {
         try {
-            $temuan = Temuan::findOrfail($id);
-            if (!$temuan || $temuan->deleted == 1) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Temuan tidak ditemukan'
-                ], 404);
+            $length = 10;
+            if ($request->has('page_size')) {
+                $length = $request->page_size;
             }
+            $temuan = Temuan::where('lha_id', $id);
 
-            $lha = $temuan->lha()->where('deleted', 0)->get();
+            $temuan->where('deleted', '0');
+            if ($request->has('keyword')) {
+                $keyword = strtolower($request->keyword);
+                $temuan->whereRaw('LOWER(judul) LIKE ?', ["%{$keyword}%"]);
+            }
+            $data = $temuan->paginate($length);
+
+            $customData = collect($data->items())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'unit' => $item->unit->nama ?? '-',
+                    'divisi' => $item->divisi->nama ?? '-',
+                    'departemen' => $item->departemen->nama ?? '-',
+                    'judul' => $item->judul,
+                    'nomor' => $item->nomor,
+                    'deskripsi' => $item->deskripsi,
+                    'status' => $item->status,
+                    'status_name' => STATUS_REKOMENDASI[$item->status],
+                ];
+            });
 
             return response()->json([
                 'status' => true,
-                'data' => $lha
+                'data' => $customData,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total' => $data->total(),
+                    'per_page' => $data->perPage(),
+                    'last_page' => $data->lastPage(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ]
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -121,7 +148,17 @@ class TemuanController extends Controller
                 ],
             ]);
 
-            $temuan = Temuan::create($validated);
+            $temuan = new Temuan();
+
+            $temuan->lha_id = $request->lha_id;
+            $temuan->unit_id = $request->unit_id;
+            $temuan->divisi_id = $request->divisi_id;
+            $temuan->departemen_id = $request->departemen_id;
+            $temuan->nomor = $request->nomor;
+            $temuan->judul = $request->judul;
+            $temuan->deskripsi = $request->deskripsi;
+
+            $temuan->save();
 
             return response()->json([
                 'status' => true,

@@ -56,22 +56,40 @@ class DivisiController extends Controller
         }
     }
 
-    public function findByUnitId($id)
+    public function findByUnitId(Request $request, $id)
     {
         try {
-            $unit = Unit::findOrfail($id);
-            if (!$unit || $unit->deleted == 1) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Unit tidak ditemukan'
-                ], 404);
+            $length = 10;
+            if ($request->has('page_size')) {
+                $length = $request->page_size;
             }
 
-            $divisi = $unit->divisi()->where('deleted', 0)->get();
+            $divisi = Divisi::where('unit_id', $id);
+            $divisi->where('deleted', '0');
+            if ($request->has('keyword')) {
+                $keyword = strtolower($request->keyword);
+                $divisi->whereRaw('LOWER(nama) LIKE ?', ["%{$keyword}%"]);
+            }
+            $data = $divisi->paginate($length);
+
+            $customData = collect($data->items())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama' => $item->nama ?? '-',
+                ];
+            });
 
             return response()->json([
                 'status' => true,
-                'data' => $divisi
+                'data' => $customData,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total' => $data->total(),
+                    'per_page' => $data->perPage(),
+                    'last_page' => $data->lastPage(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ]
             ]);
         } catch (\Throwable $e) {
             return response()->json([

@@ -56,22 +56,40 @@ class DepartemenController extends Controller
         }
     }
 
-    public function findByDivisiId($id)
+    public function findByDivisiId(Request $request, $id)
     {
         try {
-            $divisi = Divisi::findOrfail($id);
-            if (!$divisi || $divisi->deleted == 1) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Divisi tidak ditemukan'
-                ], 404);
+            $length = 10;
+            if ($request->has('page_size')) {
+                $length = $request->page_size;
+            }
+            $departemen = Departemen::where('divisi_id', $id);
+            $departemen->where('deleted', '0');
+            if ($request->has('keyword')) {
+                $keyword = strtolower($request->keyword);
+                $departemen->whereRaw('LOWER(nama) LIKE ?', ["%{$keyword}%"]);
             }
 
-            $departemen = $divisi->departemen()->where('deleted', 0)->get();
+            $data = $departemen->paginate($length);
+
+            $customData = collect($data->items())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama' => $item->nama ?? '-',
+                ];
+            });
 
             return response()->json([
                 'status' => true,
-                'data' => $departemen
+                'data' => $customData,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total' => $data->total(),
+                    'per_page' => $data->perPage(),
+                    'last_page' => $data->lastPage(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ]
             ]);
         } catch (\Throwable $e) {
             return response()->json([

@@ -19,7 +19,7 @@ class Divisi extends Model
 
     public function unit()
     {
-        return $this->hasOne(Unit::class, 'unit_id');
+        return $this->hasOne(Unit::class, 'id', 'unit_id');
     }
     public function departemen()
     {
