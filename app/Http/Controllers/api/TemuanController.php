@@ -203,7 +203,15 @@ class TemuanController extends Controller
                 ],
             ]);
 
-            $temuan->update($validated);
+            $temuan->lha_id = $request->lha_id;
+            $temuan->unit_id = $request->unit_id;
+            $temuan->divisi_id = $request->divisi_id;
+            $temuan->departemen_id = $request->departemen_id;
+            $temuan->nomor = $request->nomor;
+            $temuan->judul = $request->judul;
+            $temuan->deskripsi = $request->deskripsi;
+
+            $temuan->save();
 
             return response()->json([
                 'status' => true,
