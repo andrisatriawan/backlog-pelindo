@@ -15,7 +15,7 @@ class StageLHASeeder extends Seeder
     {
         $stages = [
             1 => 'Operator',
-            2 => 'Supervisor',
+            2 => 'Supevisor',
             3 => 'PIC',
             4 => 'Penanggung Jawab',
             5 => 'Auditor',

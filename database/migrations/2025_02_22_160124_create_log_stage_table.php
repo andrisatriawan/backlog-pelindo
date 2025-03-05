@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('lha_id')->nullable();
             $table->tinyInteger("stage");
             $table->text("keterangan");
+            $table->timestamps();
         });
     }
 

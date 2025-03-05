@@ -45,7 +45,7 @@ class RolePermissionSeeder extends Seeder
             'update status_lha'
         ];
 
-        $roleAdmin = Role::findOrCreate('supevisior', 'api');
+        $roleAdmin = Role::findOrCreate('supervisor', 'api');
 
         foreach ($permissionsSpv as $row) {
             $permission = Permission::findOrCreate($row, 'api');

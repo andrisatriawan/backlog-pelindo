@@ -7,6 +7,7 @@ use App\Models\Lha;
 use App\Models\StageHasRole;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class LhaController extends Controller
@@ -118,6 +119,7 @@ class LhaController extends Controller
 
     public function save(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validate = $request->validate([
                 'no_lha' => 'required',
@@ -134,20 +136,30 @@ class LhaController extends Controller
             $lha->periode = $request->periode;
             $lha->deskripsi = $request->deskripsi;
             $lha->last_stage = 1;
+            $lha->status = 0;
             $lha->user_id = auth()->user()->id;
 
             $lha->save();
 
+            $lha->logStage()->create([
+                'lha_id' => $lha->id,
+                'stage' => 2,
+                'keterangan' => $request->keterangan
+            ]);
+
+            DB::commit();
             return response()->json([
                 'status' => true,
                 'message' => 'Data berhasil disimpan!'
             ], 201);
         } catch (ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->errors()
             ], 422);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $th->getMessage()
@@ -291,6 +303,7 @@ class LhaController extends Controller
                 'last_stage' => $lha->last_stage,
                 'stage_name' => $lha->stage->nama ?? 'undefined',
                 'status_name' => STATUS_LHA[$lha->status] ?? '-',
+                'stage' => $lha->logStage()->where('stage', $lha->last_stage)->first(),
                 'temuan' => $temuan
             ];
 
@@ -299,6 +312,71 @@ class LhaController extends Controller
                 'data' => $response
             ]);
         } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendLhaToSpv(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $lha = Lha::findOrFail($request->lha_id);
+
+            $lha->last_stage = 2;
+            $lha->status = 1;
+
+            $lha->save();
+
+            $lha->temuan()->update([
+                'status' => 1
+            ]);
+
+            $lha->logStage()->create([
+                'lha_id' => $lha->id,
+                'stage' => 2,
+                'keterangan' => $request->keterangan
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil dikirim ke Supervisor'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendLhaToPic(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $lha = Lha::findOrFail($request->lha_id);
+
+            $lha->last_stage = 3;
+
+            $lha->save();
+
+            $lha->logStage()->create([
+                'lha_id' => $lha->id,
+                'stage' => 3,
+                'keterangan' => $request->keterangan
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil dikirim ke PIC'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $th->getMessage()

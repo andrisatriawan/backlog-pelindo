@@ -75,6 +75,8 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::delete('/{id}', [LhaController::class, 'destroy']); // Soft delete
         Route::put('/restore/{id}', [LhaController::class, 'restore']); // Restore deleted unit
         Route::get('/details/{id}', [LhaController::class, 'details']);
+        Route::post('send-lha-to-spv', [LhaController::class, 'sendLhaToSpv']);
+        Route::post('send-lha-to-pic', [LhaController::class, 'sendLhaToPic']);
     });
 
     Route::prefix('temuan')->group(function () {

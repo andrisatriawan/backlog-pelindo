@@ -37,4 +37,9 @@ class Lha extends Model
     {
         return $this->hasOne(Stage::class, 'id', 'last_stage');
     }
+
+    public function logStage()
+    {
+        return $this->hasMany(LogStage::class, 'lha_id', 'id');
+    }
 }

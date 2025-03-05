@@ -28,6 +28,7 @@ class UserController extends Controller
                     return $item->name;
                 });
                 return [
+                    'id' => $item->id,
                     'name' => $item->name,
                     'permissions' => $permissions
                 ];
