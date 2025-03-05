@@ -97,7 +97,10 @@ class RekomendasiController extends Controller
 
             return response()->json([
                 'status' => true,
-                'data' => $rekomendasi
+                'data' => $rekomendasi->map(function ($item) {
+                    $item->status_name = STATUS_REKOMENDASI[$item->status] ?? 'undefined';
+                    return $item;
+                })
             ]);
         } catch (\Throwable $e) {
             return response()->json([

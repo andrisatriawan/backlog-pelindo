@@ -17,30 +17,34 @@ class UnitSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
-
-        for ($i = 0; $i < 20; $i++) {
-            Unit::create([
-                'nama' => $faker->sentence
-            ]);
-        }
-
-        for ($i = 0; $i < 20; $i++) {
-            Divisi::create([
-                'unit_id' => $faker->numberBetween(1, 20),
-                'nama' => $faker->sentence,
-            ]);
-        }
-
-        $admin = User::firstOrCreate([
-            'nip' => '123456',
-        ], [
-            'nama' => 'admin',
-            'password' => Hash::make(123456),
-            'is_active' => 1
+        $unit = Unit::create([
+            'nama' => 'Regional Sumatera Utara',
         ]);
 
-        $admin->unit_id = 1;
-        $admin->save();
+        Divisi::create([
+            'unit_id' => $unit->id,
+            'nama' => 'Komersial',
+        ]);
+
+        Divisi::create([
+            'unit_id' => $unit->id,
+            'nama' => 'Keuangan',
+        ]);
+        Divisi::create([
+            'unit_id' => $unit->id,
+            'nama' => 'Pengadaan',
+        ]);
+        Divisi::create([
+            'unit_id' => $unit->id,
+            'nama' => 'Sumber Daya Manusia',
+        ]);
+        Divisi::create([
+            'unit_id' => $unit->id,
+            'nama' => 'Teknik',
+        ]);
+        Divisi::create([
+            'unit_id' => $unit->id,
+            'nama' => 'Strategi Korporasi/PSN',
+        ]);
     }
 }

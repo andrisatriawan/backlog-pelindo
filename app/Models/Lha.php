@@ -32,4 +32,9 @@ class Lha extends Model
     {
         return $this->hasMany(Temuan::class, 'lha_id', 'id');
     }
+
+    public function stage()
+    {
+        return $this->hasOne(Stage::class, 'id', 'last_stage');
+    }
 }

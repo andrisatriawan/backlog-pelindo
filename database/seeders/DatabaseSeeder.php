@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             UserSeeder::class,
             UnitSeeder::class,
-            LhaAndTemuanSeeder::class
+            // LhaAndTemuanSeeder::class
         ]);
     }
 }

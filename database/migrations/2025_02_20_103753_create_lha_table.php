@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('periode');
             $table->longText('deskripsi');
             $table->enum('status', [0, 1, 2, 3])->default(0); //'draf', 'proses', 'tolak', 'selesai'
-            $table->tinyInteger('last_stage')->default(0);
+            $table->tinyInteger('last_stage')->default(1);
             $table->enum('deleted', [0, 1])->default(0);
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');

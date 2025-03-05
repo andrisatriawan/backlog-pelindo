@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $admin = User::firstOrCreate([
-            'nip' => '123456',
+            'nip' => 'admin123',
         ], [
             'nama' => 'admin',
             'password' => Hash::make(123456),
@@ -24,5 +24,25 @@ class UserSeeder extends Seeder
         ]);
 
         $admin->assignRole('admin');
+
+        $spv = User::firstOrCreate([
+            'nip' => 'spv123',
+        ], [
+            'nama' => 'spv',
+            'password' => Hash::make(123456),
+            'is_active' => 1
+        ]);
+
+        $spv->assignRole('supevisior');
+
+        $pic = User::firstOrCreate([
+            'nip' => 'pic123',
+        ], [
+            'nama' => 'pic',
+            'password' => Hash::make(123456),
+            'is_active' => 1
+        ]);
+
+        $pic->assignRole('pic');
     }
 }

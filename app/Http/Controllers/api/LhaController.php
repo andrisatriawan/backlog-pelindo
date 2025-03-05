@@ -4,6 +4,8 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lha;
+use App\Models\StageHasRole;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -14,8 +16,20 @@ class LhaController extends Controller
         try {
             $length = 10;
             $lha = Lha::where('deleted', '0');
-            // if ($request->has('no_lha')) {
-            // }
+
+            $id = auth()->user()->id;
+
+            $user = User::findOrFail($id);
+
+            $check = !$user->roles()->where('name', 'admin')->exists();
+            // $check = true;
+
+            if ($check) {
+                $roleIds = $user->roles()->pluck('id');
+                $stageIds = StageHasRole::whereIn('role_id', $roleIds)->pluck('stage_id');
+
+                $lha->whereIn('last_stage', $stageIds);
+            }
 
             if ($request->has('page_size')) {
                 $length = $request->page_size;
@@ -38,7 +52,7 @@ class LhaController extends Controller
                     'status' => $item->status,
                     'last_stage' => $item->last_stage,
                     'status_name' => STATUS_LHA[$item->status],
-                    'stage_name' => '' // Contoh fungsi tambahan
+                    'stage_name' => $item->stage->nama ?? 'undefined' // Contoh fungsi tambahan
                 ];
             });
 
@@ -87,7 +101,7 @@ class LhaController extends Controller
                 'status' => $lha->status,
                 'last_stage' => $lha->last_stage,
                 'status_name' => STATUS_LHA[$lha->status] ?? '-',
-                'stage_name' => '-'
+                'stage_name' => $lha->stage->nama ?? 'undefined'
             ];
 
             return response()->json([
@@ -119,7 +133,7 @@ class LhaController extends Controller
             $lha->tanggal = $request->tanggal;
             $lha->periode = $request->periode;
             $lha->deskripsi = $request->deskripsi;
-            $lha->last_stage = 0;
+            $lha->last_stage = 1;
             $lha->user_id = auth()->user()->id;
 
             $lha->save();
@@ -275,8 +289,8 @@ class LhaController extends Controller
                 'deskripsi' => $lha->deskripsi,
                 'status' => $lha->status,
                 'last_stage' => $lha->last_stage,
+                'stage_name' => $lha->stage->nama ?? 'undefined',
                 'status_name' => STATUS_LHA[$lha->status] ?? '-',
-                'stage_name' => '-',
                 'temuan' => $temuan
             ];
 
