@@ -25,7 +25,7 @@ class Temuan extends Model
 
     public function lha()
     {
-        return $this->hasOne(Lha::class, 'lha_id', 'id');
+        return $this->hasOne(Lha::class, 'id', 'lha_id');
     }
 
     public function unit()

@@ -86,19 +86,18 @@ class RekomendasiController extends Controller
     public function findByTemuanId($id)
     {
         try {
-            $rekomendasi = Rekomendasi::findOrfail($id);
-            if (!$rekomendasi || $rekomendasi->deleted == 1) {
+            $rekomendasi = Rekomendasi::where('temuan_id', $id)->where('deleted', 0)->get();
+
+            if (!$rekomendasi) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Rekomendasi tidak ditemukan'
                 ], 404);
             }
 
-            $lha = $rekomendasi->lha()->where('deleted', 0)->get();
-
             return response()->json([
                 'status' => true,
-                'data' => $lha
+                'data' => $rekomendasi
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -125,7 +124,16 @@ class RekomendasiController extends Controller
                 ],
             ]);
 
-            $rekomendasi = Rekomendasi::create($validated);
+            $rekomendasi = new Rekomendasi();
+
+            $rekomendasi->nomor = $validated['nomor'];
+            $rekomendasi->temuan_id = $validated['temuan_id'];
+            $rekomendasi->deskripsi = $request->deskripsi;
+            $rekomendasi->batas_tanggal = $request->batas_tanggal;
+            $rekomendasi->tanggal_selesai = $request->tanggal_selesai;
+            $rekomendasi->status = $request->status;
+
+            $rekomendasi->save();
 
             return response()->json([
                 'status' => true,
@@ -171,7 +179,14 @@ class RekomendasiController extends Controller
                 ],
             ]);
 
-            $rekomendasi->update($validated);
+            $rekomendasi->nomor = $validated['nomor'];
+            $rekomendasi->temuan_id = $validated['temuan_id'];
+            $rekomendasi->deskripsi = $request->deskripsi;
+            $rekomendasi->batas_tanggal = $request->batas_tanggal;
+            $rekomendasi->tanggal_selesai = $request->tanggal_selesai;
+            $rekomendasi->status = $request->status;
+
+            $rekomendasi->save();
 
             return response()->json([
                 'status' => true,
@@ -205,7 +220,9 @@ class RekomendasiController extends Controller
                 ], 404);
             }
 
-            $rekomendasi->update(['deleted' => 1]);
+            $rekomendasi->deleted = 1;
+
+            $rekomendasi->save();
 
             return response()->json([
                 'status' => true,

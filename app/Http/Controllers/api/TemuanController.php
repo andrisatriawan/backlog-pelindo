@@ -32,9 +32,27 @@ class TemuanController extends Controller
             $temuan->orderBy('id', 'ASC');
             $data = $temuan->paginate($length);
 
+            $customData = collect($data->items())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'lha_id' => $item->lha_id,
+                    'unit_id' => $item->unit_id,
+                    'divisi_id' => $item->divisi_id,
+                    'departemen_id' => $item->departemen_id,
+                    'unit' => $item->unit->nama ?? '-',
+                    'divisi' => $item->divisi->nama ?? '-',
+                    'departemen' => $item->departemen->nama ?? '-',
+                    'judul' => $item->judul,
+                    'nomor' => $item->nomor,
+                    'deskripsi' => $item->deskripsi,
+                    'status' => $item->status,
+                    'status_name' => STATUS_LHA[$item->status],
+                ];
+            });
+
             return response()->json([
                 'status' => true,
-                'data' => $data->items(),
+                'data' => $customData,
                 'pagination' => [
                     'current_page' => $data->currentPage(),
                     'total' => $data->total(),
@@ -69,9 +87,27 @@ class TemuanController extends Controller
                     'message' => 'Temuan tidak ditemukan'
                 ], 404);
             }
+            $customData = [
+                'id' => $temuan->id,
+                'lha_id' => $temuan->lha_id,
+                'unit_id' => $temuan->unit_id,
+                'divisi_id' => $temuan->divisi_id,
+                'departemen_id' => $temuan->departemen_id,
+                'unit' => $temuan->unit->nama ?? '-',
+                'lha' => $temuan->lha->judul ?? '-',
+                'divisi' => $temuan->divisi->nama ?? '-',
+                'departemen' => $temuan
+                    ->departemen->nama ?? '-',
+                'judul' => $temuan->judul,
+                'nomor' => $temuan->nomor,
+                'deskripsi' => $temuan->deskripsi,
+                'status' => $temuan->status,
+                'status_name' => STATUS_LHA[$temuan->status],
+                'rekomendasi' => $temuan->rekomendasi()->where('deleted', 0)->get()
+            ];
             return response()->json([
                 'status' => true,
-                'data' => $temuan
+                'data' => $customData
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -107,7 +143,7 @@ class TemuanController extends Controller
                     'nomor' => $item->nomor,
                     'deskripsi' => $item->deskripsi,
                     'status' => $item->status,
-                    'status_name' => STATUS_REKOMENDASI[$item->status],
+                    'status_name' => STATUS_LHA[$item->status],
                 ];
             });
 

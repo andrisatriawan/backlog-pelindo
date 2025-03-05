@@ -241,6 +241,7 @@ class LhaController extends Controller
 
             $temuan = $lha->temuan->groupBy('divisi_id');
             $temuan = $temuan->map(function ($items, $divisiId) {
+                $items = $items->where('deleted', '0');
                 return [
                     'divisi_id' => $divisiId,
                     'nama_divisi' => $items->first()->divisi->nama ?? 'Unknown',
