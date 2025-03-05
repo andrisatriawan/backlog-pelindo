@@ -40,8 +40,8 @@ class RolePermissionSeeder extends Seeder
 
         $permissionsSpv = [
             'read lha',
-            'read temuan',
-            'read rekomendasi',
+            // 'read temuan',
+            // 'read rekomendasi',
             'update status_lha'
         ];
 
