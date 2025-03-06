@@ -77,6 +77,7 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::get('/details/{id}', [LhaController::class, 'details']);
         Route::post('send-lha-to-spv', [LhaController::class, 'sendLhaToSpv']);
         Route::post('send-lha-to-pic', [LhaController::class, 'sendLhaToPic']);
+        Route::post('reject-lha', [LhaController::class, 'rejectLha']);
     });
 
     Route::prefix('temuan')->group(function () {

@@ -303,7 +303,7 @@ class LhaController extends Controller
                 'last_stage' => $lha->last_stage,
                 'stage_name' => $lha->stage->nama ?? 'undefined',
                 'status_name' => STATUS_LHA[$lha->status] ?? '-',
-                'stage' => $lha->logStage()->where('stage', $lha->last_stage)->first(),
+                'stage' => $lha->logStage()->where('stage', $lha->last_stage)->latest()->first(),
                 'temuan' => $temuan
             ];
 
@@ -374,6 +374,43 @@ class LhaController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Berhasil dikirim ke PIC'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function rejectLha(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $lha = Lha::findOrFail($request->lha_id);
+
+            $lha->last_stage = $request->last_stage - 1;
+            if ($lha->last_stage == 1) {
+                $lha->status = 0;
+
+                $lha->temuan()->update([
+                    'status' => 0
+                ]);
+            }
+
+            $lha->save();
+
+            $lha->logStage()->create([
+                'lha_id' => $lha->id,
+                'stage' => $lha->last_stage,
+                'keterangan' => $request->keterangan
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil ditolak dan dikembalikan'
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
