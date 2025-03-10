@@ -67,6 +67,10 @@ class RekomendasiController extends Controller
                     'message' => 'Rekomendasi tidak ditemukan'
                 ], 404);
             }
+
+            $rekomendasi->status_name = STATUS_REKOMENDASI[$rekomendasi->status];
+            $rekomendasi->lha_id = $rekomendasi->temuan->lha->id;
+            $rekomendasi->lha_judul = $rekomendasi->temuan->lha->judul;
             return response()->json([
                 'status' => true,
                 'data' => $rekomendasi
