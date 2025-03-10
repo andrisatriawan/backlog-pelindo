@@ -16,6 +16,9 @@ class LhaController extends Controller
     {
         try {
             $length = 10;
+
+            $filters = $request->query('filters', []);
+
             $lha = Lha::where('deleted', '0');
 
             $id = auth()->user()->id;
@@ -40,6 +43,12 @@ class LhaController extends Controller
                 $keyword = strtolower($request->keyword);
                 $lha->whereRaw('LOWER(no_lha) LIKE ?', ["%{$keyword}%"])
                     ->orWhereRaw('LOWER(judul) LIKE ?', ["%{$keyword}%"]);
+            }
+
+            if (!empty($filters)) {
+                foreach ($filters as $key => $value) {
+                    $lha->where($key, $value);
+                }
             }
 
             $data = $lha->paginate($length);
