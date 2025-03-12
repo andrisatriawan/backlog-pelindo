@@ -15,10 +15,38 @@ class DivisiController extends Controller
     public function index(Request $request)
     {
         try {
-            $response = Divisi::where('deleted', '!=', '1')->get();
+            $length = 10;
+            if ($request->has('page_size')) {
+                $length = $request->page_size;
+            }
+
+            $divisi = Divisi::where('deleted', '0');
+
+            if ($request->has('keyword')) {
+                $keyword = strtolower($request->keyword);
+                $divisi->whereRaw('LOWER(nama) LIKE ?', ["%{$keyword}%"]);
+            }
+            $data = $divisi->paginate($length);
+
+            $customData = collect($data->items())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama' => $item->nama ?? '-',
+                    'unit' => $item->unit->nama
+                ];
+            });
+
             return response()->json([
                 'status' => true,
-                'data' => $response,
+                'data' => $customData,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total' => $data->total(),
+                    'per_page' => $data->perPage(),
+                    'last_page' => $data->lastPage(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ]
             ]);
         } catch (\Throwable $e) {
             $code = 500;

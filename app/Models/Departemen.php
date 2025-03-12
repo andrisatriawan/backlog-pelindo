@@ -19,6 +19,6 @@ class Departemen extends Model
 
     public function divisi()
     {
-        return $this->hasOne(Unit::class, 'divisi_id');
+        return $this->hasOne(Divisi::class, 'id', 'divisi_id');
     }
 }

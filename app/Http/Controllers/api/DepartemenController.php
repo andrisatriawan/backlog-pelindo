@@ -15,20 +15,44 @@ class DepartemenController extends Controller
     public function index(Request $request)
     {
         try {
-            $response = Departemen::where('deleted', '!=', '1')->get();
+            $length = 10;
+            if ($request->has('page_size')) {
+                $length = $request->page_size;
+            }
+            $departemen = Departemen::where('deleted', '0');
+            if ($request->has('keyword')) {
+                $keyword = strtolower($request->keyword);
+                $departemen->whereRaw('LOWER(nama) LIKE ?', ["%{$keyword}%"]);
+            }
+
+            $data = $departemen->paginate($length);
+
+            $customData = collect($data->items())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama' => $item->nama ?? '-',
+                    'unit' => $item->divisi->unit->nama ?? '-',
+                    'divisi' => $item->divisi->nama ?? '-',
+                ];
+            });
+
             return response()->json([
                 'status' => true,
-                'data' => $response,
+                'data' => $customData,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total' => $data->total(),
+                    'per_page' => $data->perPage(),
+                    'last_page' => $data->lastPage(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ]
             ]);
         } catch (\Throwable $e) {
-            $code = 500;
-            if ($e->getCode()) {
-                $code = $e->getCode();
-            }
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
-            ], $code);
+            ], 500);
         }
     }
     // 🔹 Get Single Departemen by ID (READ)
@@ -43,6 +67,8 @@ class DepartemenController extends Controller
                     'message' => 'Departemen tidak ditemukan'
                 ], 404);
             }
+
+            $departemen->unit_id = $departemen->divisi->unit->id;
 
             return response()->json([
                 'status' => true,
