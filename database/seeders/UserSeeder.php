@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
             'is_active' => 1
         ]);
 
-        $spv->assignRole('supevisor');
+        $spv->assignRole('supervisor');
 
         $pic = User::firstOrCreate([
             'nip' => 'pic123',

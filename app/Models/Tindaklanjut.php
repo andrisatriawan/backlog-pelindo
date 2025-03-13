@@ -22,4 +22,20 @@ class Tindaklanjut extends Model
     {
         return $this->hasOne(Rekomendasi::class, 'rekomendasi_id', 'id');
     }
+    public function file()
+    {
+        return $this->hasMany(TindaklanjutHasFile::class, 'tindaklanjut_id', 'id');
+    }
+    public function getFilesAttribute()
+    {
+        return $this->file->map(function ($item) {
+            return $item->file;
+        });
+    }
+    public function getFilesIdAttribute()
+    {
+        return $this->file->map(function ($item) {
+            return $item->file_id;
+        });
+    }
 }
