@@ -11,6 +11,9 @@ use App\Http\Controllers\api\FilesController;
 use App\Http\Controllers\api\LhaController;
 use App\Http\Controllers\api\RekomendasiController;
 use App\Http\Controllers\api\TemuanController;
+use App\Http\Controllers\api\TindakLanjutController;
+use App\Http\Controllers\api\TindakLanjutHasFileController;
+use App\Http\Controllers\FileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -105,6 +108,32 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::delete('/{id}', [RekomendasiController::class, 'destroy']); // Soft delete
         Route::put('/restore/{id}', [RekomendasiController::class, 'restore']); // Restore deleted unit
     });
+    Route::prefix('tindaklanjut')->group(function () {
+        Route::get('/', [TindakLanjutController::class, 'index']); // Get all
+        Route::get('/{id}', [TindakLanjutController::class, 'show']); // Get single
+        Route::get('/find-by-rekomendasi-id/{id}', [TindakLanjutController::class, 'findByRekomendasiId']); // Get single
+        Route::post('/', [TindakLanjutController::class, 'store']); // Create
+        Route::put('/{id}', [TindakLanjutController::class, 'update']); // Update
+        Route::delete('/{id}', [TindakLanjutController::class, 'destroy']); // Soft delete
+        Route::put('/restore/{id}', [TindakLanjutController::class, 'restore']); // Restore deleted unit
+    });
+
+    Route::prefix('tindaklanjut-hasfile')->group(function () {
+        Route::get('/find-by-tindaklanjut-id/{id}', [TindakLanjutHasFileController::class, 'findByTindakLanjutId']); // Get all
+        Route::post('/', [TindakLanjutHasFileController::class, 'store']); // Create
+        Route::put('/{id}', [TindakLanjutHasFileController::class, 'update']); // Update
+        Route::delete('/{id}', [TindakLanjutHasFileController::class, 'destroy']); // Soft delete
+        Route::put('/restore/{id}', [TindakLanjutHasFileController::class, 'restore']); // Restore deleted unit
+    });
+    Route::prefix('file')->group(function () {
+        Route::get('/', [FileController::class, 'index']); // Get all
+        Route::get('/{id}', [FileController::class, 'show']); // Get single
+        Route::post('/', [FileController::class, 'store']); // Create
+        Route::put('/{id}', [FileController::class, 'update']); // Update
+        Route::delete('/{id}', [FileController::class, 'destroy']); // Soft delete
+        Route::put('/restore/{id}', [FileController::class, 'restore']); // Restore deleted unit
+    });
+
 
     Route::prefix('files')->group(function () {
         Route::post('upload', [FilesController::class, 'upload']);
