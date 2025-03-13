@@ -13,3 +13,10 @@ define('STATUS_REKOMENDASI', [
     2 => 'Selesai',
     3 => 'TPTD'
 ]);
+
+define('STATUS_TEMUAN', [
+    0 => 'Draf',
+    1 => 'Proses',
+    2 => 'Tolak',
+    3 => 'Selesai'
+]);

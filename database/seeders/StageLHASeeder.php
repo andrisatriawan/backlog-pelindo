@@ -24,6 +24,7 @@ class StageLHASeeder extends Seeder
 
         for ($i = 1; $i <= 6; $i++) {
             Stage::firstOrCreate([
+                'id' => $i,
                 'nama' => $stages[$i]
             ]);
         }

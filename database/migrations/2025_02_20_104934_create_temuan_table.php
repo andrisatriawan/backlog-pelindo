@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('judul');
             $table->longText('deskripsi')->nullable();
             $table->enum('status', [0, 1, 2])->default(0);
+            $table->tinyInteger('last_stage')->default(1);
             $table->enum('deleted', [0, 1])->default(0);
             $table->timestamps();
             $table->timestamp('deleted_at')->nullable();

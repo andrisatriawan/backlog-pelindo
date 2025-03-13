@@ -34,6 +34,10 @@ class TemuanController extends Controller
                 return $item->name;
             })->toArray();
 
+            if (!in_array('admin', $roleName)) {
+                $temuan->where('status', '!=', 0);
+            }
+
             if (in_array('pic', $roleName)) {
                 $temuan->where('divisi_id', auth()->user()->divisi_id);
             }
@@ -56,7 +60,7 @@ class TemuanController extends Controller
                     'nomor' => $item->nomor,
                     'deskripsi' => $item->deskripsi,
                     'status' => $item->status,
-                    'status_name' => STATUS_LHA[$item->status],
+                    'status_name' => STATUS_TEMUAN[$item->status],
                 ];
             });
 
@@ -112,8 +116,12 @@ class TemuanController extends Controller
                 'nomor' => $temuan->nomor,
                 'deskripsi' => $temuan->deskripsi,
                 'status' => $temuan->status,
-                'status_name' => STATUS_LHA[$temuan->status],
-                'rekomendasi' => $temuan->rekomendasi()->where('deleted', 0)->get()
+                'status_name' => STATUS_TEMUAN[$temuan->status],
+                'rekomendasi' => $temuan->rekomendasi()->where('deleted', 0)->get()->map(function ($item) {
+                    $data = $item->toArray();
+                    $data['status_name'] = STATUS_REKOMENDASI[$item->status] ?? 'Unknown';
+                    return $data;
+                })
             ];
             return response()->json([
                 'status' => true,
@@ -141,6 +149,19 @@ class TemuanController extends Controller
                 $keyword = strtolower($request->keyword);
                 $temuan->whereRaw('LOWER(judul) LIKE ?', ["%{$keyword}%"]);
             }
+
+            $roleName = auth()->user()->roles->map(function ($item) {
+                return $item->name;
+            })->toArray();
+
+            if (!in_array('admin', $roleName)) {
+                $temuan->where('status', '!=', 0);
+            }
+
+            if (in_array('pic', $roleName)) {
+                $temuan->where('divisi_id', auth()->user()->divisi_id);
+            }
+
             $data = $temuan->paginate($length);
 
             $customData = collect($data->items())->map(function ($item) {

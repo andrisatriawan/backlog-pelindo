@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Lha;
 use App\Models\StageHasRole;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -153,7 +154,7 @@ class LhaController extends Controller
             $lha->logStage()->create([
                 'lha_id' => $lha->id,
                 'stage' => 2,
-                'keterangan' => $request->keterangan
+                'keterangan' => $request->keterangan ?? 'LHA dibuat'
             ]);
 
             DB::commit();
@@ -272,22 +273,41 @@ class LhaController extends Controller
     public function details($id)
     {
         try {
+            $roleName = auth()->user()->roles->map(function ($item) {
+                return  $item->name;
+            })->toArray();
+
             $lha = Lha::findOrFail($id);
 
             $temuan = $lha->temuan->groupBy('divisi_id');
+
+            if (!in_array('admin', $roleName)) {
+                $lha = $lha->where('last_stage', '>', 1)->first();
+                if (!$lha) {
+                    throw new Exception('Tidak ada lha yang ditampilkan.');
+                }
+
+                if (in_array('pic', $roleName) && $lha->last_stage > 2) {
+                    $temuan = $lha->temuan->where('divisi_id', auth()->user()->divisi_id);
+                    $temuan = $temuan->groupBy('divisi_id');
+                }
+            }
+
             $temuan = $temuan->map(function ($items, $divisiId) {
                 $items = $items->where('deleted', '0');
                 return [
                     'divisi_id' => $divisiId,
                     'nama_divisi' => $items->first()->divisi->nama ?? 'Unknown',
                     'data' => $items->map(function ($item) {
+                        $rekomendasi = $item->rekomendasi->where('deleted', '0');
                         return [
                             'id' => $item->id,
                             'nomor' => $item->nomor,
                             'judul' => $item->judul,
                             'deskripsi' => $item->deskripsi,
                             'status' => $item->status,
-                            'rekomendasi' => $item->rekomendasi->map(function ($item) {
+                            'rekomendasi' => $rekomendasi->map(function ($item) {
+                                $tindaklanjut = $item->tindaklanjut->where('deleted', '0');
                                 return [
                                     'id' => $item->id,
                                     'nomor' => $item->nomor,
@@ -295,16 +315,22 @@ class LhaController extends Controller
                                     'batas_tanggal' => $item->batas_tanggal,
                                     'status' => $item->status,
                                     'status_name' => STATUS_REKOMENDASI[$item->status] ?? '-',
-                                    'tindaklanjut' => $item->tindaklanjut->map(function ($item) {
+                                    'tindaklanjut' => $tindaklanjut->map(function ($item) {
                                         return [
                                             'id' => $item->id,
                                             'deskripsi' => $item->deskripsi,
-                                            'files' => $item->file->map(function ($item) {
-                                                return [
-                                                    'nama' => $item->file->nama,
-                                                    'url' => url('storage/' . $item->file->direktori . '/' . $item->file->file)
-                                                ];
+                                            'files' => $item->file->map(function ($file) {
+
+                                                if ($file->file && $file->file->deleted == 0) {
+                                                    return [
+                                                        'nama' => $file->file->nama,
+                                                        'url' => url('storage/' . $file->file->direktori . '/' . $file->file->file)
+                                                    ];
+                                                }
+                                                return null;
                                             })
+                                                ->filter() // Hapus nilai null
+                                                ->values()
                                         ];
                                     })
                                 ];

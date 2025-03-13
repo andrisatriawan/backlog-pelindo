@@ -28,7 +28,7 @@ class RolePermissionSeeder extends Seeder
             'read rekomendasi',
             'update rekomendasi',
             'delete rekomendasi',
-            'update status_lha'
+            'update status-lha-admin'
         ];
 
         $roleAdmin = Role::findOrCreate('admin', 'api');
@@ -40,9 +40,7 @@ class RolePermissionSeeder extends Seeder
 
         $permissionsSpv = [
             'read lha',
-            // 'read temuan',
-            // 'read rekomendasi',
-            'update status_lha'
+            'update status-lha-spv'
         ];
 
         $roleAdmin = Role::findOrCreate('supervisor', 'api');
@@ -56,11 +54,13 @@ class RolePermissionSeeder extends Seeder
             'read lha',
             'read temuan',
             'read rekomendasi',
+            'update rekomendasi',
             'update status_lha',
             'create tindaklanjut',
             'read tindaklanjut',
             'update tindaklanjut',
-            'delete tindaklanjut'
+            'delete tindaklanjut',
+            'update status-lha-pic'
         ];
 
         $roleAdmin = Role::findOrCreate('pic', 'api');
@@ -68,6 +68,18 @@ class RolePermissionSeeder extends Seeder
         foreach ($permissionsPIC as $row) {
             $permission = Permission::findOrCreate($row, 'api');
             $roleAdmin->givePermissionTo($permission);
+        }
+
+        $permissionsPJ = [
+            'read lha',
+            'update status-lha-penanggungjawab'
+        ];
+
+        $rolePJ = Role::findOrCreate('penanggungjawab', 'api');
+
+        foreach ($permissionsPJ as $row) {
+            $permission = Permission::findOrCreate($row, 'api');
+            $rolePJ->givePermissionTo($permission);
         }
     }
 }

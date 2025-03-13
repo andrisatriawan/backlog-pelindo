@@ -23,8 +23,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RolePermissionSeeder::class,
-            UserSeeder::class,
             UnitSeeder::class,
+            UserSeeder::class,
             StageLHASeeder::class,
             StageHasRoleSeeder::class
             // LhaAndTemuanSeeder::class

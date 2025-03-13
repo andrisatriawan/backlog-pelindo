@@ -44,5 +44,15 @@ class UserSeeder extends Seeder
         ]);
 
         $pic->assignRole('pic');
+
+        $pj = User::firstOrCreate([
+            'nip' => 'pj123',
+        ], [
+            'nama' => 'penanggungjawab',
+            'password' => Hash::make(123456),
+            'is_active' => 1
+        ]);
+
+        $pj->assignRole('penanggungjawab');
     }
 }
