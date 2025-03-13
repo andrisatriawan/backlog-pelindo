@@ -99,4 +99,153 @@ class UserController extends Controller
             ], $code);
         }
     }
+
+    public function store(Request $request)
+    {
+        try {
+            $user = new User();
+            $user->nama = $request->nama;
+            $user->nip = $request->nip;
+            $user->password = bcrypt($request->password);
+            $user->is_active = $request->is_active;
+            $user->unit_id = $request->unit_id;
+            $user->divisi_id = $request->divisi_id;
+            $user->departemen_id = $request->departemen_id;
+            $user->jabatan_id = $request->jabatan_id;
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User berhasil disimpan.',
+                'data' => $user
+            ], 201);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->where('deleted', '1');
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User berhasil dihapus.'
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            $user->nama = $request->nama;
+            $user->nip = $request->nip;
+            if ($request->password) {
+                $user->password = bcrypt($request->password);
+            }
+            $user->is_active = $request->is_active;
+            $user->unit_id = $request->unit_id;
+            $user->divisi_id = $request->divisi_id;
+            $user->departemen_id = $request->departemen_id;
+            $user->jabatan_id = $request->jabatan_id;
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User berhasil diperbarui.',
+                'data' => $user
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function find($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            $user->unit = $user->unit->nama;
+            $user->divisi = $user->divisi->nama;
+            $user->departemen = $user->departemen->nama;
+            $user->jabatan = $user->jabatan->nama;
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User ditemukan.',
+                'data' => $user
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function index(Request $request)
+    {
+        try {
+            $perPage = $request->get('per_page', 10);
+
+            $data = User::where('deleted', '0')->paginate($perPage);
+
+            $response = collect($data->items())->map(function ($item) {
+                return [
+                    "id" => $item->id,
+                    "nip" => $item->nip,
+                    "nama" => $item->nama,
+                    "is_active" => $item->is_active === '1' ? true : false,
+                    "unit_id" => null,
+                    "divisi_id" => null,
+                    "departemen_id" => null,
+                    "jabatan_id" => null,
+                    'unit' => $item->unit->nama ?? '-',
+                    'divisi' => $item->divisi->nama ?? '-',
+                    'departemen' => $item->departemen->nama ?? '-',
+                    'jabatan' => $item->jabatan->nama ?? '-',
+                    'roles' => $item->roles->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'nama' => $item->name
+                        ];
+                    })
+                ];
+            });
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data user berhasil diambil.',
+                'data' => $response,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total' => $data->total(),
+                    'per_page' => $data->perPage(),
+                    'last_page' => $data->lastPage(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ]
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
