@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -102,6 +104,7 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             $user = new User();
             $user->nama = $request->nama;
@@ -114,12 +117,20 @@ class UserController extends Controller
             $user->jabatan_id = $request->jabatan_id;
             $user->save();
 
+            foreach ($request->roles as $row) {
+                $role = Role::findById($row);
+                $user->assignRole($role->name);
+            }
+
+
+            DB::commit();
             return response()->json([
                 'status' => true,
                 'message' => 'User berhasil disimpan.',
                 'data' => $user
             ], 201);
         } catch (\Throwable $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -131,7 +142,8 @@ class UserController extends Controller
     {
         try {
             $user = User::findOrFail($id);
-            $user->where('deleted', '1');
+            $user->deleted = 1;
+            $user->deleted_at = now()->toDateTimeLocalString();
             $user->save();
 
             return response()->json([
@@ -148,6 +160,7 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
+        DB::beginTransaction();
         try {
             $user = User::findOrFail($id);
             $user->nama = $request->nama;
@@ -162,12 +175,18 @@ class UserController extends Controller
             $user->jabatan_id = $request->jabatan_id;
             $user->save();
 
+            foreach ($request->roles as $row) {
+                $role = Role::findById($row);
+                $user->assignRole($role->name);
+            }
+            DB::commit();
             return response()->json([
                 'status' => true,
                 'message' => 'User berhasil diperbarui.',
                 'data' => $user
             ], 200);
         } catch (\Throwable $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -180,10 +199,11 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($id);
 
-            $user->unit = $user->unit->nama;
-            $user->divisi = $user->divisi->nama;
-            $user->departemen = $user->departemen->nama;
-            $user->jabatan = $user->jabatan->nama;
+            $user->unit = $user->unit->nama ?? '-';
+            $user->divisi = $user->divisi->nama ?? '-';
+            $user->departemen = $user->departemen->nama ?? '-';
+            $user->jabatan = $user->jabatan->nama ?? '-';
+            $user->roles = $user->roles;
 
             return response()->json([
                 'status' => true,
@@ -211,10 +231,10 @@ class UserController extends Controller
                     "nip" => $item->nip,
                     "nama" => $item->nama,
                     "is_active" => $item->is_active === '1' ? true : false,
-                    "unit_id" => null,
-                    "divisi_id" => null,
-                    "departemen_id" => null,
-                    "jabatan_id" => null,
+                    "unit_id" => $item->unit_id,
+                    "divisi_id" => $item->divisi_id,
+                    "departemen_id" => $item->departemen_id,
+                    "jabatan_id" => $item->jabatan_id,
                     'unit' => $item->unit->nama ?? '-',
                     'divisi' => $item->divisi->nama ?? '-',
                     'departemen' => $item->departemen->nama ?? '-',

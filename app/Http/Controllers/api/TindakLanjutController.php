@@ -8,6 +8,7 @@ use App\Models\Tindaklanjut;
 use App\Models\TindaklanjutHasFile;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -85,7 +86,19 @@ class TindakLanjutController extends Controller
                 'rekomendasi_id' => $tindaklanjut->rekomendasi_id,
                 'deskripsi' => $tindaklanjut->deskripsi,
                 'tanggal' => $tindaklanjut->tanggal,
-                'file' => $tindaklanjut->file()->where('deleted', '0')->get(),
+                'file' => $tindaklanjut->file
+                    ->map(function ($file) {
+                        if ($file->file && $file->file->deleted == 0) {
+                            return [
+                                'id' => $file->file->id,
+                                'nama' => $file->file->nama,
+                                'url' => url('storage/' . $file->file->direktori . '/' . $file->file->file)
+                            ];
+                        }
+                        return null;
+                    })
+                    ->filter() // Hapus nilai null
+                    ->values(),
             ];
             return response()->json([
                 'status' => true,
@@ -121,6 +134,18 @@ class TindakLanjutController extends Controller
                     'rekomendasi_id' => $item->rekomendasi_id,
                     'deskripsi' => $item->deskripsi,
                     'tanggal' => $item->tanggal,
+                    'files' => $item->file
+                        ->map(function ($file) {
+                            if ($file->file && $file->file->deleted == 0) {
+                                return [
+                                    'nama' => $file->file->nama,
+                                    'url' => url('storage/' . $file->file->direktori . '/' . $file->file->file)
+                                ];
+                            }
+                            return null;
+                        })
+                        ->filter() // Hapus nilai null
+                        ->values(), // Reset index array
                 ];
             });
 
@@ -149,10 +174,12 @@ class TindakLanjutController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validated = $request->validate([
                 'deskripsi' => 'required',
                 'tanggal' => 'required',
+                'file_dukung' => 'required',
                 'rekomendasi_id' => [
                     'required',
                     'integer',
@@ -171,17 +198,27 @@ class TindakLanjutController extends Controller
 
             $tindaklanjut->save();
 
+            foreach ($request->file_dukung as $row) {
+                $tindaklanjut->file()->create([
+                    'tindaklanjut_id' => $tindaklanjut->id,
+                    'file_id' => $row
+                ]);
+            }
+
+            DB::commit();
             return response()->json([
                 'status' => true,
                 'message' => 'Tindak lanjut berhasil ditambahkan',
                 'data' => $tindaklanjut
             ], 201);
         } catch (ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->errors()
             ], 422);
         } catch (\Throwable $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -194,6 +231,7 @@ class TindakLanjutController extends Controller
      */
     public function update(Request $request, $id)
     {
+        DB::beginTransaction();
         try {
             $tindaklanjut = Tindaklanjut::findOrFail($id);
             if (!$tindaklanjut || $tindaklanjut->deleted == 1) {
@@ -206,6 +244,7 @@ class TindakLanjutController extends Controller
             $validated = $request->validate([
                 'deskripsi' => 'required',
                 'tanggal' => 'required',
+                'file_dukung' => 'required',
                 'rekomendasi_id' => [
                     'required',
                     'integer',
@@ -219,20 +258,30 @@ class TindakLanjutController extends Controller
             $tindaklanjut->deskripsi = $request->deskripsi;
             $tindaklanjut->tanggal = $request->tanggal;
 
-
             $tindaklanjut->save();
+            $tindaklanjut->file()->delete();
 
+            foreach ($request->file_dukung as $row) {
+                $tindaklanjut->file()->create([
+                    'tindaklanjut_id' => $tindaklanjut->id,
+                    'file_id' => $row
+                ]);
+            }
+
+            DB::commit();
             return response()->json([
                 'status' => true,
                 'message' => 'Tindaklanjut berhasil diubah',
                 'data' => $tindaklanjut
             ]);
         } catch (ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->errors()
             ], 422);
         } catch (\Throwable $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()

@@ -295,6 +295,18 @@ class LhaController extends Controller
                                     'batas_tanggal' => $item->batas_tanggal,
                                     'status' => $item->status,
                                     'status_name' => STATUS_REKOMENDASI[$item->status] ?? '-',
+                                    'tindaklanjut' => $item->tindaklanjut->map(function ($item) {
+                                        return [
+                                            'id' => $item->id,
+                                            'deskripsi' => $item->deskripsi,
+                                            'files' => $item->file->map(function ($item) {
+                                                return [
+                                                    'nama' => $item->file->nama,
+                                                    'url' => url('storage/' . $item->file->direktori . '/' . $item->file->file)
+                                                ];
+                                            })
+                                        ];
+                                    })
                                 ];
                             })
                         ];

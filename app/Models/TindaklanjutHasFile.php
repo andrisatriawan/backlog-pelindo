@@ -8,12 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class TindaklanjutHasFile extends Model
 {
     use HasFactory;
-    protected $table = 'tindaklanjut_has_file';
+    protected $table = 'tindaklanjut_has_files';
     protected $fillable = [
         'tindaklanjut_id',
         'file_id',
-        'deleted',
-        'deleted_at'
     ];
     public function tindaklanjut()
     {
@@ -21,6 +19,6 @@ class TindaklanjutHasFile extends Model
     }
     public function file()
     {
-        return $this->hasOne(File::class, 'file_id', 'id');
+        return $this->hasOne(Files::class, 'id', 'file_id');
     }
 }

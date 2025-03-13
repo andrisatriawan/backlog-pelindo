@@ -29,8 +29,18 @@ class TemuanController extends Controller
                 $temuan->whereRaw('LOWER(nomor) LIKE ?', ["%{$keyword}%"]);
             }
 
+
+            $roleName = auth()->user()->roles->map(function ($item) {
+                return $item->name;
+            })->toArray();
+
+            if (in_array('pic', $roleName)) {
+                $temuan->where('divisi_id', auth()->user()->divisi_id);
+            }
+
             $temuan->orderBy('id', 'ASC');
             $data = $temuan->paginate($length);
+
 
             $customData = collect($data->items())->map(function ($item) {
                 return [

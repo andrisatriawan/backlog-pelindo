@@ -18,4 +18,9 @@ class Files extends Model
         'deleted',
         'deleted_at'
     ];
+
+    public function getUrl()
+    {
+        return url('storage/' . $this->direktori . '/' . $this->file);
+    }
 }

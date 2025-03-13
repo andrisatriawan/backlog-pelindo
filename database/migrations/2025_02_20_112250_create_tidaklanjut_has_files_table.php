@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tidaklanjut_has_files', function (Blueprint $table) {
+        Schema::create('tindaklanjut_has_files', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('tindaklanjut_id');
             $table->unsignedBigInteger('file_id');
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tidaklanjut_has_files');
+        Schema::dropIfExists('tindaklanjut_has_files');
     }
 };
