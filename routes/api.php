@@ -86,6 +86,8 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::get('/details/{id}', [LhaController::class, 'details']);
         Route::post('send-lha-to-spv', [LhaController::class, 'sendLhaToSpv']);
         Route::post('send-lha-to-pic', [LhaController::class, 'sendLhaToPic']);
+        Route::post('send-lha-to-pj', [LhaController::class, 'sendLhaToPj']);
+        Route::post('send-lha-to-auditor', [LhaController::class, 'sendLhaToAuditor']);
         Route::post('reject-lha', [LhaController::class, 'rejectLha']);
     });
 

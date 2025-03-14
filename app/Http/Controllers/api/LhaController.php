@@ -27,7 +27,6 @@ class LhaController extends Controller
             $user = User::findOrFail($id);
 
             $check = !$user->roles()->where('name', 'admin')->exists();
-            // $check = true;
 
             if ($check) {
                 $roleIds = $user->roles()->pluck('id');
@@ -287,7 +286,7 @@ class LhaController extends Controller
                     throw new Exception('Tidak ada lha yang ditampilkan.');
                 }
 
-                if (in_array('pic', $roleName) && $lha->last_stage > 2) {
+                if ((in_array('pic', $roleName) || in_array('penanggungjawab', $roleName)) && $lha->last_stage > 2) {
                     $temuan = $lha->temuan->where('divisi_id', auth()->user()->divisi_id);
                     $temuan = $temuan->groupBy('divisi_id');
                 }
@@ -351,8 +350,12 @@ class LhaController extends Controller
                 'stage_name' => $lha->stage->nama ?? 'undefined',
                 'status_name' => STATUS_LHA[$lha->status] ?? '-',
                 'stage' => $lha->logStage()->where('stage', $lha->last_stage)->latest()->first(),
-                'temuan' => $temuan
+                'temuan' => $temuan,
             ];
+
+            if ($lha->last_stage > 2) {
+                $response['temuan_last_stage'] = $lha->temuan()->where('divisi_id', auth()->user()->divisi_id)->latest('updated_at')->value('last_stage');
+            }
 
             return response()->json([
                 'status' => true,
@@ -378,7 +381,8 @@ class LhaController extends Controller
             $lha->save();
 
             $lha->temuan()->update([
-                'status' => 1
+                'status' => 1,
+                'last_stage' => 2
             ]);
 
             $lha->logStage()->create([
@@ -411,6 +415,10 @@ class LhaController extends Controller
 
             $lha->save();
 
+            $lha->temuan()->update([
+                'last_stage' => 3
+            ]);
+
             $lha->logStage()->create([
                 'lha_id' => $lha->id,
                 'stage' => 3,
@@ -421,6 +429,90 @@ class LhaController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Berhasil dikirim ke PIC'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendLhaToPj(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $lha = Lha::findOrFail($request->lha_id);
+
+            $lha->temuan()->where('divisi_id', auth()->user()->divisi_id)->update([
+                'last_stage' => 4
+            ]);
+
+            $lha->refresh();
+
+            $totalTemuan = $lha->temuan()->count();
+
+            $totalLastStage4 = $lha->temuan()->where('last_stage', 4)->count();
+
+            if ($totalTemuan > 0 && $totalTemuan === $totalLastStage4) {
+                $lha->last_stage = 4;
+
+                $lha->save();
+
+                $lha->logStage()->create([
+                    'lha_id' => $lha->id,
+                    'stage' => 4,
+                    'keterangan' => $request->keterangan
+                ]);
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil dikirim ke Penanggungjawab'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendLhaToAuditor(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $lha = Lha::findOrFail($request->lha_id);
+
+            $lha->temuan()->where('divisi_id', auth()->user()->divisi_id)->update([
+                'last_stage' => 5
+            ]);
+
+            $lha->refresh();
+
+            $totalTemuan = $lha->temuan()->count();
+
+            $totalLastStage4 = $lha->temuan()->where('last_stage', 5)->count();
+
+            if ($totalTemuan > 0 && $totalTemuan === $totalLastStage4) {
+                $lha->last_stage = 5;
+
+                $lha->save();
+
+                $lha->logStage()->create([
+                    'lha_id' => $lha->id,
+                    'stage' => 5,
+                    'keterangan' => $request->keterangan
+                ]);
+            }
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil dikirim ke Auditor'
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
