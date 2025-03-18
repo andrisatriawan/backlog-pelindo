@@ -8,6 +8,7 @@ use App\Http\Controllers\api\DivisiController;
 use App\Http\Controllers\api\JabatanController;
 use App\Http\Controllers\api\DepartemenController;
 use App\Http\Controllers\api\FilesController;
+use App\Http\Controllers\api\GneratePdfController;
 use App\Http\Controllers\api\LhaController;
 use App\Http\Controllers\api\RekomendasiController;
 use App\Http\Controllers\api\TemuanController;
@@ -99,6 +100,11 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::put('/{id}', [TemuanController::class, 'update']); // Update
         Route::delete('/{id}', [TemuanController::class, 'destroy']); // Soft delete
         Route::put('/restore/{id}', [TemuanController::class, 'restore']); // Restore deleted unit
+
+        Route::post('send-temuan-to-pic', [TemuanController::class, 'sendToPIC']);
+        Route::post('reject-temuan', [TemuanController::class, 'rejectTemuan']);
+        Route::post('submit-temuan', [TemuanController::class, 'submitTemuan']);
+        Route::post('accept-temuan', [TemuanController::class, 'acceptTemuan']);
     });
 
     Route::prefix('rekomendasi')->group(function () {
@@ -142,6 +148,10 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::get('find-by-lha/{id}', [FilesController::class, 'findByLha']);
         Route::get('{id}/find', [FilesController::class, 'find']);
         Route::delete('{id}/destroy', [FilesController::class, 'destroy']);
+    });
+
+    Route::prefix('cetak')->group(function () {
+        Route::get('temuan/{id}', [GneratePdfController::class, 'temuan']);
     });
 
     Route::post('logout', [AuthController::class, 'logout']);

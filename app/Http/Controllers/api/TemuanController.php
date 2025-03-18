@@ -7,6 +7,7 @@ use App\Models\Lha;
 use App\Models\Temuan;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -42,6 +43,12 @@ class TemuanController extends Controller
                 $temuan->where('divisi_id', auth()->user()->divisi_id);
             }
 
+            $roleIds = auth()->user()->roles->pluck('id');
+
+            foreach ($roleIds as $id) {
+                $temuan->where('last_stage', '>=', $id);
+            }
+
             $temuan->orderBy('id', 'ASC');
             $data = $temuan->paginate($length);
 
@@ -61,6 +68,8 @@ class TemuanController extends Controller
                     'deskripsi' => $item->deskripsi,
                     'status' => $item->status,
                     'status_name' => STATUS_TEMUAN[$item->status],
+                    'last_stage' => $item->last_stage,
+                    'stage_name' => $item->stage->nama
                 ];
             });
 
@@ -117,6 +126,8 @@ class TemuanController extends Controller
                 'deskripsi' => $temuan->deskripsi,
                 'status' => $temuan->status,
                 'status_name' => STATUS_TEMUAN[$temuan->status],
+                'last_stage' => $temuan->last_stage,
+                'stage_name' => $temuan->stage->nama,
                 'rekomendasi' => $temuan->rekomendasi()->where('deleted', 0)->get()->map(function ($item) {
                     $data = $item->toArray();
                     $data['status_name'] = STATUS_REKOMENDASI[$item->status] ?? 'Unknown';
@@ -175,6 +186,8 @@ class TemuanController extends Controller
                     'deskripsi' => $item->deskripsi,
                     'status' => $item->status,
                     'status_name' => STATUS_LHA[$item->status],
+                    'last_stage' => $item->last_stage,
+                    'stage_name' => $item->stage->nama
                 ];
             });
 
@@ -203,6 +216,7 @@ class TemuanController extends Controller
      */
     public function store(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validated = $request->validate([
                 'nomor' => 'required',
@@ -227,17 +241,29 @@ class TemuanController extends Controller
 
             $temuan->save();
 
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => 1,
+                'keterangan' => 'Temuan dibuat.',
+                'nama' => $temuan->stage->nama,
+                'action' => 'draf'
+            ]);
+
+            DB::commit();
             return response()->json([
                 'status' => true,
                 'message' => 'Temuan berhasil ditambahkan',
                 'data' => $temuan
             ], 201);
         } catch (ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->errors()
             ], 422);
         } catch (\Throwable $e) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -349,6 +375,141 @@ class TemuanController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendToPIC(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+            $temuan->last_stage = 3;
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => 3,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'diterima'
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil di teruskan.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function submitTemuan(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+            $temuan->last_stage += 1;;
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'submit'
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil dikirim.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function acceptTemuan(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $action = 'diterima';
+            $temuan = Temuan::findOrFail($request->temuan_id);
+            $temuan->last_stage += 1;
+
+            if ($temuan->last_stage == 5) {
+                $temuan->status = 2;
+                $action = 'selesai';
+            }
+
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => $action
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil diterima.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function rejectTemuan(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+            $temuan->last_stage -= 1;;
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'ditolak',
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil ditolak.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
             ], 500);
         }
     }

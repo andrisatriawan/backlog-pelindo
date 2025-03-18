@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lha;
+use App\Models\Stage;
 use App\Models\StageHasRole;
 use App\Models\User;
 use Exception;
@@ -32,7 +33,13 @@ class LhaController extends Controller
                 $roleIds = $user->roles()->pluck('id');
                 $stageIds = StageHasRole::whereIn('role_id', $roleIds)->pluck('stage_id');
 
-                $lha->whereIn('last_stage', $stageIds);
+                $lha->whereHas('temuan', function ($query) use ($stageIds) {
+                    $query->where(function ($q) use ($stageIds) {
+                        foreach ($stageIds as $stageId) {
+                            $q->orWhere('last_stage', '>=', $stageId);
+                        }
+                    });
+                });
             }
 
             if ($request->has('page_size')) {
@@ -60,9 +67,9 @@ class LhaController extends Controller
                     'no_lha' => $item->no_lha,
                     'periode' => $item->periode,
                     'status' => $item->status,
-                    'last_stage' => $item->last_stage,
+                    // 'last_stage' => $item->last_stage,
                     'status_name' => STATUS_LHA[$item->status],
-                    'stage_name' => $item->stage->nama ?? 'undefined' // Contoh fungsi tambahan
+                    // 'stage_name' => $item->stage->nama ?? 'undefined' // Contoh fungsi tambahan
                 ];
             });
 
@@ -272,23 +279,34 @@ class LhaController extends Controller
     public function details($id)
     {
         try {
-            $roleName = auth()->user()->roles->map(function ($item) {
-                return  $item->name;
-            })->toArray();
+            $roleName = auth()->user()->roles->pluck('name')->toArray();
 
             $lha = Lha::findOrFail($id);
 
             $temuan = $lha->temuan->groupBy('divisi_id');
 
             if (!in_array('admin', $roleName)) {
-                $lha = $lha->where('last_stage', '>', 1)->first();
-                if (!$lha) {
-                    throw new Exception('Tidak ada lha yang ditampilkan.');
+                $roleIds = auth()->user()->roles->pluck('id');
+                $stageIds = StageHasRole::whereIn('role_id', $roleIds)->pluck('stage_id');
+                if ($lha->last_stage >= 2) {
+                    $lha = Lha::whereHas('temuan', function ($query) use ($stageIds) {
+                        $query->where(function ($q) use ($stageIds) {
+                            foreach ($stageIds as $stageId) {
+                                $q->orWhere('last_stage', '>=', $stageId);
+                            }
+                        });
+                    })->findOrFail($id);
                 }
-
-                if ((in_array('pic', $roleName) || in_array('penanggungjawab', $roleName)) && $lha->last_stage > 2) {
-                    $temuan = $lha->temuan->where('divisi_id', auth()->user()->divisi_id);
-                    $temuan = $temuan->groupBy('divisi_id');
+                if (array_intersect(['pic', 'penanggungjawab'], $roleName)) {
+                    $temuan = $lha->temuan()
+                        ->where('divisi_id', auth()->user()->divisi_id)
+                        ->where(function ($q) use ($stageIds) {
+                            foreach ($stageIds as $stageId) {
+                                $q->orWhere('last_stage', '>=', $stageId);
+                            }
+                        })
+                        ->get()
+                        ->groupBy('divisi_id');
                 }
             }
 
@@ -305,6 +323,10 @@ class LhaController extends Controller
                             'judul' => $item->judul,
                             'deskripsi' => $item->deskripsi,
                             'status' => $item->status,
+                            'status_name' => STATUS_TEMUAN[$item->status],
+                            'last_stage' => $item->last_stage,
+                            'stage' => $item->logStage()->where('stage', $item->last_stage)->latest()->first(),
+                            'stage_name' => $item->stage->nama,
                             'rekomendasi' => $rekomendasi->map(function ($item) {
                                 $tindaklanjut = $item->tindaklanjut->where('deleted', '0');
                                 return [
@@ -312,6 +334,7 @@ class LhaController extends Controller
                                     'nomor' => $item->nomor,
                                     'deskripsi' => $item->deskripsi,
                                     'batas_tanggal' => $item->batas_tanggal,
+                                    'tanggal_selesai' => $item->tanggal_selesai,
                                     'status' => $item->status,
                                     'status_name' => STATUS_REKOMENDASI[$item->status] ?? '-',
                                     'tindaklanjut' => $tindaklanjut->map(function ($item) {
@@ -380,15 +403,32 @@ class LhaController extends Controller
 
             $lha->save();
 
+            $lha->refresh();
+
             $lha->temuan()->update([
                 'status' => 1,
                 'last_stage' => 2
             ]);
 
+
+            foreach ($lha->temuan as $temuan) {
+                $temuan->logStage()->create([
+                    'lha_id' => $lha->id,
+                    'stage' => 2,
+                    'keterangan' => $request->keterangan,
+                    'nama' => $lha->stage->nama,
+                    'user_id' => auth()->user()->id,
+                    'action' => 'submit'
+                ]);
+            }
+
             $lha->logStage()->create([
                 'lha_id' => $lha->id,
                 'stage' => 2,
-                'keterangan' => $request->keterangan
+                'keterangan' => $request->keterangan,
+                'nama' => $lha->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'submit'
             ]);
 
             DB::commit();

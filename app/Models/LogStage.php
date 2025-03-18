@@ -14,6 +14,15 @@ class LogStage extends Model
     protected $fillable = [
         'lha_id',
         'stage',
-        'keterangan'
+        'nama',
+        'keterangan',
+        'model_id',
+        'model_type',
+        'action'
     ];
+
+    public function model()
+    {
+        return $this->morphTo();
+    }
 }

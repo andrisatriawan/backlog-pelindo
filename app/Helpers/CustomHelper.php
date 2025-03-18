@@ -17,6 +17,7 @@ define('STATUS_REKOMENDASI', [
 define('STATUS_TEMUAN', [
     0 => 'Draf',
     1 => 'Proses',
-    2 => 'Tolak',
-    3 => 'Selesai'
+    2 => 'Selesai Internal',
+    3 => 'Selesai',
+    4 => 'Tolak',
 ]);

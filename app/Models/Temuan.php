@@ -47,4 +47,14 @@ class Temuan extends Model
     {
         return $this->hasMany(Rekomendasi::class, 'temuan_id', 'id');
     }
+
+    public function stage()
+    {
+        return $this->hasOne(Stage::class, 'id', 'last_stage');
+    }
+
+    public function logStage()
+    {
+        return $this->morphMany(LogStage::class, 'model');
+    }
 }

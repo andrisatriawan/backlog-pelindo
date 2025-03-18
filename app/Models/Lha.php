@@ -40,6 +40,6 @@ class Lha extends Model
 
     public function logStage()
     {
-        return $this->hasMany(LogStage::class, 'lha_id', 'id');
+        return $this->morphMany(LogStage::class, 'model');
     }
 }
