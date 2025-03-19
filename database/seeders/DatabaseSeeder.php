@@ -26,7 +26,8 @@ class DatabaseSeeder extends Seeder
             UnitSeeder::class,
             UserSeeder::class,
             StageLHASeeder::class,
-            StageHasRoleSeeder::class
+            StageHasRoleSeeder::class,
+            SuperadminSeeder::class
             // LhaAndTemuanSeeder::class
         ]);
     }
