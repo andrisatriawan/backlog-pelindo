@@ -25,4 +25,9 @@ class LogStage extends Model
     {
         return $this->morphTo();
     }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
 }

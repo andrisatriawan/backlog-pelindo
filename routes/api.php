@@ -105,6 +105,8 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::post('reject-temuan', [TemuanController::class, 'rejectTemuan']);
         Route::post('submit-temuan', [TemuanController::class, 'submitTemuan']);
         Route::post('accept-temuan', [TemuanController::class, 'acceptTemuan']);
+
+        Route::get('log-stage/{id}', [TemuanController::class, 'logStage']);
     });
 
     Route::prefix('rekomendasi')->group(function () {

@@ -32,11 +32,15 @@ class LhaController extends Controller
             if ($check) {
                 $roleIds = $user->roles()->pluck('id');
                 $stageIds = StageHasRole::whereIn('role_id', $roleIds)->pluck('stage_id');
+                $roleName = $user->roles()->pluck('name')->toArray();
 
-                $lha->whereHas('temuan', function ($query) use ($stageIds) {
-                    $query->where(function ($q) use ($stageIds) {
+                $lha->whereHas('temuan', function ($query) use ($stageIds, $roleName) {
+                    $query->where(function ($q) use ($stageIds, $roleName) {
                         foreach ($stageIds as $stageId) {
                             $q->orWhere('last_stage', '>=', $stageId);
+                            if (array_intersect(['pic'], $roleName)) {
+                                $q->where('divisi_id', auth()->user()->divisi_id);
+                            }
                         }
                     });
                 });
@@ -297,9 +301,19 @@ class LhaController extends Controller
                         });
                     })->findOrFail($id);
                 }
-                if (array_intersect(['pic', 'penanggungjawab'], $roleName)) {
+                if (array_intersect(['pic'], $roleName)) {
                     $temuan = $lha->temuan()
                         ->where('divisi_id', auth()->user()->divisi_id)
+                        ->where(function ($q) use ($stageIds) {
+                            foreach ($stageIds as $stageId) {
+                                $q->orWhere('last_stage', '>=', $stageId);
+                            }
+                        })
+                        ->get()
+                        ->groupBy('divisi_id');
+                } elseif (array_intersect(['penanggungjawab'], $roleName)) {
+                    $temuan = $lha->temuan()
+                        ->where('unit_id', auth()->user()->unit_id)
                         ->where(function ($q) use ($stageIds) {
                             foreach ($stageIds as $stageId) {
                                 $q->orWhere('last_stage', '>=', $stageId);

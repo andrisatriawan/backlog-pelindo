@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lha;
+use App\Models\Stage;
 use App\Models\Temuan;
 use Exception;
 use Illuminate\Http\Request;
@@ -451,11 +452,6 @@ class TemuanController extends Controller
             $temuan = Temuan::findOrFail($request->temuan_id);
             $temuan->last_stage += 1;
 
-            if ($temuan->last_stage == 5) {
-                $temuan->status = 2;
-                $action = 'selesai';
-            }
-
             $temuan->save();
 
             $temuan->refresh();
@@ -507,6 +503,43 @@ class TemuanController extends Controller
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function logStage($id)
+    {
+        try {
+            $temuan = Temuan::findOrFail($id);
+            $log = $temuan->logStage()->orderBy('created_at', 'desc')->get();
+            $data = $log->map(function ($item) use ($log) {
+
+                $stageBefore = $item->stage - 1;
+
+                if ($item->action == 'ditolak') {
+                    $stageBefore = $item->stage + 1;
+                }
+
+                return [
+                    "stage" => $item->stage,
+                    "keterangan" => $item->keterangan,
+                    "created_at" => $item->created_at->toISOString(),
+                    "nama" => $item->nama,
+                    "action" => $item->action,
+                    "user" => $item->user->nama ?? 'user not found',
+                    "stage_before" => Stage::find($stageBefore)?->nama ?? null,
+                    'stageBefore' => $stageBefore
+                ];
+            });
+            return response()->json([
+                'status' => true,
+                'message' => 'Log Stage temuan.',
+                'data' => $data
+            ]);
+        } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
                 'message' => $th->getMessage()

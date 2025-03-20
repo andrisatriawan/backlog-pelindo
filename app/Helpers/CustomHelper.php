@@ -8,8 +8,8 @@ define('STATUS_LHA', [
 ]);
 
 define('STATUS_REKOMENDASI', [
-    0 => 'BD',
-    1 => 'BS',
+    0 => 'BD (Belum Ditindaklanjuti)',
+    1 => 'BS (Belum Selesai)',
     2 => 'Selesai',
     3 => 'TPTD'
 ]);
