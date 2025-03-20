@@ -18,6 +18,7 @@ class LogStage extends Model
         'keterangan',
         'model_id',
         'model_type',
+        'user_id',
         'action'
     ];
 
