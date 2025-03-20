@@ -144,8 +144,11 @@
         <p>Medan, ................... 2024</p>
         <p>PIC</p>
         <br><br><br>
-        <p>………………………………………….<br>
-            NIPP: ………………..</p>
+        @php
+            $userPIC = $data->logStage()->where('stage', 3)->latest()->first();
+        @endphp
+        <p>{{ $userPIC->user->nama ?? '....................' }}<br>
+            NIPP: {{ $userPIC->user->nip ?? '....................' }}</p>
     </div>
 </body>
 
