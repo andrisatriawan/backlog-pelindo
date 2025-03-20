@@ -94,11 +94,11 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
 
     Route::prefix('temuan')->group(function () {
         Route::get('/', [TemuanController::class, 'index']); // Get all
-        Route::get('/{id}', [TemuanController::class, 'show']); // Get single
+        Route::get('/{id}/show', [TemuanController::class, 'show']); // Get single
         Route::get('/find-by-lha-id/{id}', [TemuanController::class, 'findByLhaId']); // Get single
-        Route::post('/', [TemuanController::class, 'store']); // Create
-        Route::put('/{id}', [TemuanController::class, 'update']); // Update
-        Route::delete('/{id}', [TemuanController::class, 'destroy']); // Soft delete
+        Route::post('/store', [TemuanController::class, 'store']); // Create
+        Route::put('/{id}/update', [TemuanController::class, 'update']); // Update
+        Route::delete('/{id}/delete', [TemuanController::class, 'destroy']); // Soft delete
         Route::put('/restore/{id}', [TemuanController::class, 'restore']); // Restore deleted unit
 
         Route::post('send-temuan-to-pic', [TemuanController::class, 'sendToPIC']);
@@ -108,8 +108,11 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
 
         Route::post('tolak-selesai-internal', [TemuanController::class, 'tolakSelesaiInternal']);
         Route::post('selesai-internal', [TemuanController::class, 'selesaiInternal']);
+        Route::post('tolak-auditor', [TemuanController::class, 'tolakAuditor']);
+        Route::post('terima-auditor', [TemuanController::class, 'terimaAuditor']);
 
         Route::get('log-stage/{id}', [TemuanController::class, 'logStage']);
+        Route::get('/hasil-auditor', [TemuanController::class, 'hasilAuditor']);
     });
 
     Route::prefix('rekomendasi')->group(function () {

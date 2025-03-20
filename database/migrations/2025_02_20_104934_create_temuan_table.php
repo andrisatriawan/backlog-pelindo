@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('nomor');
             $table->string('judul');
             $table->longText('deskripsi')->nullable();
-            $table->enum('status', [0, 1, 2])->default(0);
+            $table->enum('status', [0, 1, 2, 3, 4])->default(0);
             $table->tinyInteger('last_stage')->default(1);
             $table->enum('deleted', [0, 1])->default(0);
             $table->timestamps();

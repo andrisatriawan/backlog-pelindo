@@ -287,7 +287,7 @@ class LhaController extends Controller
 
             $lha = Lha::findOrFail($id);
 
-            $temuan = $lha->temuan->groupBy('divisi_id');
+            $temuan = $lha->temuan()->orderBy('id', 'asc')->get()->groupBy('divisi_id');
 
             if (!in_array('admin', $roleName)) {
                 $roleIds = auth()->user()->roles->pluck('id');
@@ -309,7 +309,7 @@ class LhaController extends Controller
                                 $q->orWhere('last_stage', '>=', $stageId);
                             }
                         })
-                        ->get()
+                        ->orderBy('id', 'asc')->get()
                         ->groupBy('divisi_id');
                 } elseif (array_intersect(['penanggungjawab'], $roleName)) {
                     $temuan = $lha->temuan()
@@ -319,7 +319,7 @@ class LhaController extends Controller
                                 $q->orWhere('last_stage', '>=', $stageId);
                             }
                         })
-                        ->get()
+                        ->orderBy('id', 'asc')->get()
                         ->groupBy('divisi_id');
                 }
             }

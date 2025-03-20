@@ -28,7 +28,8 @@ class RolePermissionSeeder extends Seeder
             'read rekomendasi',
             'update rekomendasi',
             'delete rekomendasi',
-            'update status-lha-admin'
+            'update status-lha-admin',
+            'read hasil-auditor'
         ];
 
         $roleAdmin = Role::findOrCreate('admin', 'api');

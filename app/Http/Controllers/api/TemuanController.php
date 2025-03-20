@@ -581,6 +581,7 @@ class TemuanController extends Controller
         DB::beginTransaction();
         try {
             $temuan = Temuan::findOrFail($request->temuan_id);
+
             $temuan->status = 2;
             $temuan->save();
 
@@ -599,6 +600,139 @@ class TemuanController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Berhasil diterima.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function hasilAuditor(Request $request)
+    {
+        // try {
+        $length = 10;
+        if ($request->has('page_size')) {
+            $length = $request->page_size;
+        }
+
+        $temuan = Temuan::where('deleted', '!=', '1')->where('last_stage', '>=', 5);
+
+        if ($request->has('keyword')) {
+            $keyword = strtolower($request->keyword);
+            $temuan->whereRaw('LOWER(nomor) LIKE ?', ["%{$keyword}%"]);
+            $temuan->orWhereRaw('LOWER(judul) LIKE ?', ["%{$keyword}%"]);
+        }
+
+        $temuan->orderBy('id', 'ASC');
+
+        $data = $temuan->paginate($length);
+
+
+        $customData = collect($data->items())->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'lha_id' => $item->lha_id,
+                'unit_id' => $item->unit_id,
+                'divisi_id' => $item->divisi_id,
+                'departemen_id' => $item->departemen_id,
+                'unit' => $item->unit->nama ?? '-',
+                'divisi' => $item->divisi->nama ?? '-',
+                'departemen' => $item->departemen->nama ?? '-',
+                'judul' => $item->judul,
+                'nomor' => $item->nomor,
+                'deskripsi' => $item->deskripsi,
+                'status' => $item->status,
+                'status_name' => STATUS_TEMUAN[$item->status],
+                'last_stage' => $item->last_stage,
+                'stage_name' => $item->stage->nama
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'data' => $customData,
+            'pagination' => [
+                'current_page' => $data->currentPage(),
+                'total' => $data->total(),
+                'per_page' => $data->perPage(),
+                'last_page' => $data->lastPage(),
+                'next_page_url' => $data->nextPageUrl(),
+                'prev_page_url' => $data->previousPageUrl(),
+            ]
+        ]);
+        // } catch (\Throwable $e) {
+        //     $code = 500;
+        //     if ($e->getCode()) {
+        //         $code = $e->getCode();
+        //     }
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => $e->getMessage()
+        //     ], $code);
+        // }
+    }
+
+    public function tolakAuditor(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+            $temuan->status = 0;
+            $temuan->last_stage = 1;
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'ditolak',
+                'stage_before' => 5
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil ditolak.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function terimaAuditor(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+            $temuan->status = 3;
+            $temuan->last_stage = 6;
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'selesai',
+                'stage_before' => 5
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Temuan berhasil disimpan ke status selesai.'
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
