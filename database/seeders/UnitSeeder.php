@@ -17,32 +17,32 @@ class UnitSeeder extends Seeder
      */
     public function run(): void
     {
-        $unit = Unit::create([
+        $unit = Unit::firstOrCreate([
             'nama' => 'Regional Sumatera Utara',
         ]);
 
-        Divisi::create([
+        Divisi::firstOrCreate([
             'unit_id' => $unit->id,
             'nama' => 'Komersial',
         ]);
 
-        Divisi::create([
+        Divisi::firstOrCreate([
             'unit_id' => $unit->id,
             'nama' => 'Keuangan',
         ]);
-        Divisi::create([
+        Divisi::firstOrCreate([
             'unit_id' => $unit->id,
             'nama' => 'Pengadaan',
         ]);
-        Divisi::create([
+        Divisi::firstOrCreate([
             'unit_id' => $unit->id,
             'nama' => 'Sumber Daya Manusia',
         ]);
-        Divisi::create([
+        Divisi::firstOrCreate([
             'unit_id' => $unit->id,
             'nama' => 'Teknik',
         ]);
-        Divisi::create([
+        Divisi::firstOrCreate([
             'unit_id' => $unit->id,
             'nama' => 'Strategi Korporasi/PSN',
         ]);

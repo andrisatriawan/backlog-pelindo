@@ -19,7 +19,8 @@ class LogStage extends Model
         'model_id',
         'model_type',
         'user_id',
-        'action'
+        'action',
+        'stage_before'
     ];
 
     public function model()

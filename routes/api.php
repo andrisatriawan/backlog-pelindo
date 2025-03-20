@@ -106,6 +106,9 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::post('submit-temuan', [TemuanController::class, 'submitTemuan']);
         Route::post('accept-temuan', [TemuanController::class, 'acceptTemuan']);
 
+        Route::post('tolak-selesai-internal', [TemuanController::class, 'tolakSelesaiInternal']);
+        Route::post('selesai-internal', [TemuanController::class, 'selesaiInternal']);
+
         Route::get('log-stage/{id}', [TemuanController::class, 'logStage']);
     });
 

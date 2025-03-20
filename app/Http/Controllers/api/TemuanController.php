@@ -417,7 +417,7 @@ class TemuanController extends Controller
         DB::beginTransaction();
         try {
             $temuan = Temuan::findOrFail($request->temuan_id);
-            $temuan->last_stage += 1;;
+            $temuan->last_stage += 1;
             $temuan->save();
 
             $temuan->refresh();
@@ -427,7 +427,8 @@ class TemuanController extends Controller
                 'keterangan' => $request->keterangan,
                 'nama' => $temuan->stage->nama,
                 'user_id' => auth()->user()->id,
-                'action' => 'submit'
+                'action' => 'submit',
+                'stage_before' => $temuan->last_stage - 1
             ]);
 
             DB::commit();
@@ -461,7 +462,8 @@ class TemuanController extends Controller
                 'keterangan' => $request->keterangan,
                 'nama' => $temuan->stage->nama,
                 'user_id' => auth()->user()->id,
-                'action' => $action
+                'action' => $action,
+                'stage_before' => $temuan->last_stage - 1
             ]);
 
             DB::commit();
@@ -494,6 +496,7 @@ class TemuanController extends Controller
                 'nama' => $temuan->stage->nama,
                 'user_id' => auth()->user()->id,
                 'action' => 'ditolak',
+                'stage_before' => $temuan->last_stage + 1
             ]);
 
             DB::commit();
@@ -515,13 +518,7 @@ class TemuanController extends Controller
         try {
             $temuan = Temuan::findOrFail($id);
             $log = $temuan->logStage()->orderBy('created_at', 'desc')->get();
-            $data = $log->map(function ($item) use ($log) {
-
-                $stageBefore = $item->stage - 1;
-
-                if ($item->action == 'ditolak') {
-                    $stageBefore = $item->stage + 1;
-                }
+            $data = $log->map(function ($item) use ($temuan) {
 
                 return [
                     "stage" => $item->stage,
@@ -530,8 +527,7 @@ class TemuanController extends Controller
                     "nama" => $item->nama,
                     "action" => $item->action,
                     "user" => $item->user->nama ?? 'user not found',
-                    "stage_before" => Stage::find($stageBefore)?->nama ?? null,
-                    'stageBefore' => $stageBefore
+                    "stage_before" => Stage::find($item->stage_before)?->nama ?? null
                 ];
             });
             return response()->json([
@@ -540,6 +536,72 @@ class TemuanController extends Controller
                 'data' => $data
             ]);
         } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function tolakSelesaiInternal(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+            $temuan->last_stage = 3;
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'ditolak',
+                'stage_before' => 2
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil ditolak.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function selesaiInternal(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+            $temuan->status = 2;
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'selesai',
+                'stage_before' => 2
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil diterima.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json([
                 'status' => false,
                 'message' => $th->getMessage()

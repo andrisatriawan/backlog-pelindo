@@ -40,7 +40,8 @@ class RolePermissionSeeder extends Seeder
 
         $permissionsSpv = [
             'read lha',
-            'update status-lha-spv'
+            'update status-lha-spv',
+            'update selesai-internal'
         ];
 
         $roleAdmin = Role::findOrCreate('supervisor', 'api');

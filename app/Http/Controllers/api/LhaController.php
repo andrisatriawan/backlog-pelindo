@@ -340,7 +340,7 @@ class LhaController extends Controller
                             'status_name' => STATUS_TEMUAN[$item->status],
                             'last_stage' => $item->last_stage,
                             'stage' => $item->logStage()->where('stage', $item->last_stage)->latest()->first(),
-                            'stage_name' => $item->stage->nama,
+                            'stage_name' => $item->last_stage === 5 && $item->status == 1 ? 'Supervisor' : $item->stage->nama,
                             'rekomendasi' => $rekomendasi->map(function ($item) {
                                 $tindaklanjut = $item->tindaklanjut->where('deleted', '0');
                                 return [
