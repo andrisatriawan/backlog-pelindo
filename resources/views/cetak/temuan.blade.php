@@ -74,6 +74,12 @@
             z-index: -1;
             text-align: center;
         }
+
+        .qr-code {
+            margin: 0;
+            left: -10px;
+            margin-left: -10px;
+        }
     </style>
 </head>
 
@@ -161,7 +167,11 @@
     <div class="signature">
         <p>Medan, {{ formatTanggal(now()->toDateString(), 'j F Y') }}</p>
         <p>PIC</p>
-        <br><br><br>
+        @if ($qrCode)
+            <img src="{{ $qrCode }}" class="qr-code" width="100" height="100">
+        @else
+            <br><br><br>
+        @endif
         @php
             $userPIC = $data->logStage()->where('stage', 4)->latest()->first();
         @endphp

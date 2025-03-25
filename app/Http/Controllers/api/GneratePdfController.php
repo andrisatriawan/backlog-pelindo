@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Lha;
 use App\Models\Temuan;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use iio\libmergepdf\Merger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +27,26 @@ class GneratePdfController extends Controller
         try {
             $temuan = Temuan::with('rekomendasi.tindaklanjut.file.file')->findOrFail($id);
             $data['data'] = $temuan;
+            $data['qrCode'] = null;
+            if ($temuan->status == 2) {
+                $user = $temuan->logStage()->where('stage', 4)->latest()->first();
+                $text = "Nama : {$user->user->nama}\n"
+                    . "NIP  : {$user->user->nip}\n"
+                    . "Unit : " . ($user->user->unit->nama ?? '-') . "\n"
+                    . "Divisi : " . ($user->user->divisi ?? '-');
+
+                // dd($text);
+                // Generate QR Code
+                $qrCode = new QrCode($text, (new Encoding('UTF-8')), ErrorCorrectionLevel::Low, 200, 0);
+
+                $writer = new PngWriter();
+                $result = $writer->write($qrCode);
+
+                // Konversi ke Base64
+                $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($result->getString());
+
+                $data['qrCode'] = $qrCodeBase64;
+            }
             $pdf = Pdf::loadView('cetak.temuan', $data)->setPaper('A4');
 
             $temuanPdf = $pdf->stream('Form tindak lanjut LHA.pdf');
