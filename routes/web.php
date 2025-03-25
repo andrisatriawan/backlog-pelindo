@@ -19,3 +19,4 @@ Route::get('/', function () {
 });
 
 Route::get('cetak/temuan/{id}', [GneratePdfController::class, 'temuan']);
+Route::get('cetak/monitoring/{id}', [GneratePdfController::class, 'monitoring']);

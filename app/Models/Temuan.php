@@ -57,4 +57,9 @@ class Temuan extends Model
     {
         return $this->morphMany(LogStage::class, 'model');
     }
+
+    public function temuanHasFiles()
+    {
+        return $this->hasMany(TemuanHasFiles::class, 'temuan_id', 'id');
+    }
 }

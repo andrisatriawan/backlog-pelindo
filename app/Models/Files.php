@@ -16,7 +16,8 @@ class Files extends Model
         'file',
         'direktori',
         'deleted',
-        'deleted_at'
+        'deleted_at',
+        'is_spi'
     ];
 
     public function getUrl()

@@ -161,10 +161,14 @@ class LhaController extends Controller
 
             $lha->save();
 
+            $lha->refresh();
+
             $lha->logStage()->create([
                 'lha_id' => $lha->id,
                 'stage' => 2,
-                'keterangan' => $request->keterangan ?? 'LHA dibuat'
+                'nama' => $lha->stage->nama,
+                'keterangan' => $request->keterangan ?? 'LHA dibuat',
+                'user_id' => auth()->user()->id
             ]);
 
             DB::commit();
@@ -432,7 +436,8 @@ class LhaController extends Controller
                     'keterangan' => $request->keterangan,
                     'nama' => $lha->stage->nama,
                     'user_id' => auth()->user()->id,
-                    'action' => 'submit'
+                    'action' => 'submit',
+                    'action_name' => 'Proses approval Supervisor'
                 ]);
             }
 
@@ -442,7 +447,8 @@ class LhaController extends Controller
                 'keterangan' => $request->keterangan,
                 'nama' => $lha->stage->nama,
                 'user_id' => auth()->user()->id,
-                'action' => 'submit'
+                'action' => 'submit',
+                'action_name' => 'Proses approval Supervisor'
             ]);
 
             DB::commit();
@@ -607,6 +613,63 @@ class LhaController extends Controller
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function hasilSpi(Request $request)
+    {
+        try {
+            $length = 10;
+
+            $lha = Lha::where('deleted', '0');
+
+
+            $lha->whereHas('temuan', function ($query) {
+                $query->where('last_stage', '>=', 5)->where('status', 2);
+            });
+
+            if ($request->has('page_size')) {
+                $length = $request->page_size;
+            }
+
+            if ($request->has('keyword')) {
+                $keyword = strtolower($request->keyword);
+                $lha->whereRaw('LOWER(no_lha) LIKE ?', ["%{$keyword}%"])
+                    ->orWhereRaw('LOWER(judul) LIKE ?', ["%{$keyword}%"]);
+            }
+
+            $data = $lha->paginate($length);
+
+            $customData = collect($data->items())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'judul' => $item->judul,
+                    'no_lha' => $item->no_lha,
+                    'periode' => $item->periode,
+                    'status' => $item->status,
+                    'status_name' => STATUS_LHA[$item->status],
+                ];
+            });
+
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Data tersedia!',
+                'data' => $customData,
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'total' => $data->total(),
+                    'per_page' => $data->perPage(),
+                    'last_page' => $data->lastPage(),
+                    'next_page_url' => $data->nextPageUrl(),
+                    'prev_page_url' => $data->previousPageUrl(),
+                ]
+            ]);
+        } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
                 'message' => $th->getMessage()

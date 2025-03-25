@@ -79,10 +79,10 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
 
     Route::prefix('lha')->group(function () {
         Route::get('/', [LhaController::class, 'index']);
-        Route::get('/{id}', [LhaController::class, 'show']); // Get single
+        Route::get('/{id}/show', [LhaController::class, 'show']); // Get single
         Route::post('/create', [LhaController::class, 'save']);
-        Route::put('/{id}', [LhaController::class, 'update']); // Update
-        Route::delete('/{id}', [LhaController::class, 'destroy']); // Soft delete
+        Route::put('/{id}/update', [LhaController::class, 'update']); // Update
+        Route::delete('/{id}/delete', [LhaController::class, 'destroy']); // Soft delete
         Route::put('/restore/{id}', [LhaController::class, 'restore']); // Restore deleted unit
         Route::get('/details/{id}', [LhaController::class, 'details']);
         Route::post('send-lha-to-spv', [LhaController::class, 'sendLhaToSpv']);
@@ -90,6 +90,8 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::post('send-lha-to-pj', [LhaController::class, 'sendLhaToPj']);
         Route::post('send-lha-to-auditor', [LhaController::class, 'sendLhaToAuditor']);
         Route::post('reject-lha', [LhaController::class, 'rejectLha']);
+
+        Route::get('hasil-spi', [LhaController::class, 'hasilSpi']);
     });
 
     Route::prefix('temuan')->group(function () {
@@ -112,7 +114,8 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::post('terima-auditor', [TemuanController::class, 'terimaAuditor']);
 
         Route::get('log-stage/{id}', [TemuanController::class, 'logStage']);
-        Route::get('/hasil-auditor', [TemuanController::class, 'hasilAuditor']);
+        Route::get('/hasil-auditor/{id}', [TemuanController::class, 'hasilAuditor']);
+        Route::post('/input-hasil-auditor', [TemuanController::class, 'inputHasilAuditor']);
     });
 
     Route::prefix('rekomendasi')->group(function () {
@@ -154,6 +157,7 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
     Route::prefix('files')->group(function () {
         Route::post('upload', [FilesController::class, 'upload']);
         Route::get('find-by-lha/{id}', [FilesController::class, 'findByLha']);
+        Route::get('find-by-lha-spi/{id}', [FilesController::class, 'findByLhaSpi']);
         Route::get('{id}/find', [FilesController::class, 'find']);
         Route::delete('{id}/destroy', [FilesController::class, 'destroy']);
     });

@@ -18,7 +18,8 @@ class Rekomendasi extends Model
         'tanggal_selesai',
         'status',
         'deleted',
-        'deleted_at'
+        'deleted_at',
+        'is_spi'
     ];
 
     public function temuan()

@@ -59,10 +59,28 @@
         .signature p {
             margin: 4px 0;
         }
+
+        body {
+            position: relative;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 90pt;
+            color: rgba(0, 0, 0, 0.1);
+            z-index: -1;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body>
+    @if ($data->status != 2)
+        <div class="watermark">{{ $data->last_stage == 5 && $data->status == 1 ? 'DRAF FINAL' : 'DRAF' }}</div>
+    @endif
     <!-- Header Section -->
 
     <div class="header">
@@ -141,11 +159,11 @@
 
     <!-- Signature Section -->
     <div class="signature">
-        <p>Medan, ................... 2024</p>
+        <p>Medan, {{ formatTanggal(now()->toDateString(), 'j F Y') }}</p>
         <p>PIC</p>
         <br><br><br>
         @php
-            $userPIC = $data->logStage()->where('stage', 3)->latest()->first();
+            $userPIC = $data->logStage()->where('stage', 4)->latest()->first();
         @endphp
         <p>{{ $userPIC->user->nama ?? '....................' }}<br>
             NIPP: {{ $userPIC->user->nip ?? '....................' }}</p>

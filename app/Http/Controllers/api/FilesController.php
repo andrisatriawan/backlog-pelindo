@@ -15,6 +15,9 @@ class FilesController extends Controller
     public function upload(Request $request)
     {
         try {
+            $request->validate([
+                'file' => 'required|mimes:pdf',
+            ]);
             if (!$request->hasFile('file')) {
                 throw new Exception('Tidak ada file yang diupload.');
             }
@@ -28,11 +31,15 @@ class FilesController extends Controller
             $path = $file->storeAs('public/' . $directory, $filename);
 
             $fileModel = new Files();
+
             $fileModel->divisi_id = $divisi_id;
             $fileModel->lha_id = $lha_id;
             $fileModel->nama = $nama;
             $fileModel->file = $filename;
             $fileModel->direktori = $directory;
+            if ($request->has('is_spi')) {
+                $fileModel->is_spi = $request->is_spi;
+            }
             $fileModel->save();
 
             return response()->json([
@@ -127,6 +134,38 @@ class FilesController extends Controller
                 'status' => false,
                 'message' => $th->getMessage()
             ], 500);
+        }
+    }
+
+    public function findByLhaSpi($lha_id)
+    {
+        try {
+            $files = Files::where('lha_id', $lha_id)->where('deleted', '0')->where('is_spi', true)->get();
+            foreach ($files as $file) {
+                $filePath = 'public/' . $file->direktori . '/' . $file->file;
+
+                if (Storage::exists($filePath)) {
+                    $file->url_file = url('storage/' . $file->direktori . '/' . $file->file);
+                } else {
+                    $file->url_file = null;
+                }
+            }
+            $response = $files->map(
+                function ($file) {
+                    return [
+                        'id' => $file->id,
+                        'nama' => $file->nama,
+                        'url_file' => $file->url_file,
+                    ];
+                }
+            );
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil mengambil files.',
+                'data' => $response
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 }
