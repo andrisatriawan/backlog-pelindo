@@ -127,10 +127,12 @@
             <td>
                 <table class="nested-table">
                     @foreach ($data->rekomendasi as $key => $row)
-                        <tr>
-                            <td style="width: 20px">{{ chr($key + 97) }}.</td>
-                            <td>{{ $row->nomor }} / {{ $row->deskripsi }}</td>
-                        </tr>
+                        @if (!$row->is_spi)
+                            <tr>
+                                <td style="width: 20px">{{ chr($key + 97) }}.</td>
+                                <td>{{ $row->nomor }} / {{ $row->deskripsi }}</td>
+                            </tr>
+                        @endif
                     @endforeach
                 </table>
             </td>
@@ -142,12 +144,14 @@
             <td class="value">
                 <table class="nested-table">
                     @foreach ($data->rekomendasi as $rekomendasi)
-                        @foreach ($rekomendasi->tindaklanjut as $key => $row)
-                            <tr>
-                                <td style="width: 20px">{{ chr((int) $key + 97) }}.</td>
-                                <td>{{ $rekomendasi->nomor }} / {{ $row->deskripsi }}</td>
-                            </tr>
-                        @endforeach
+                        @if (!$rekomendasi->is_spi)
+                            @foreach ($rekomendasi->tindaklanjut as $key => $row)
+                                <tr>
+                                    <td style="width: 20px">{{ chr((int) $key + 97) }}.</td>
+                                    <td>{{ $rekomendasi->nomor }} / {{ $row->deskripsi }}</td>
+                                </tr>
+                            @endforeach
+                        @endif
                     @endforeach
 
                 </table>
@@ -176,7 +180,7 @@
             $userPIC = $data->logStage()->where('stage', 4)->latest()->first();
         @endphp
         <p>{{ $userPIC->user->nama ?? '....................' }}<br>
-            NIPP: {{ $userPIC->user->nip ?? '....................' }}</p>
+            NIP: {{ $userPIC->user->nip ?? '....................' }}</p>
     </div>
 </body>
 

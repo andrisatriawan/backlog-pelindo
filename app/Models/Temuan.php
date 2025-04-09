@@ -62,4 +62,9 @@ class Temuan extends Model
     {
         return $this->hasMany(TemuanHasFiles::class, 'temuan_id', 'id');
     }
+
+    public function latestLogStage()
+    {
+        return $this->morphOne(LogStage::class, 'model')->latestOfMany();
+    }
 }

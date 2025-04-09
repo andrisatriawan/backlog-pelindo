@@ -633,10 +633,6 @@ class TemuanController extends Controller
 
         $temuan = Temuan::where('deleted', '!=', '1')->where('last_stage', '>=', 5)->where('lha_id', $id);
 
-        $temuan->whereHas('rekomendasi', function ($query) {
-            $query->where('status', '!=', 2);
-        });
-
         $temuan->orderBy('id', 'ASC');
 
         $data = $temuan->get();
@@ -659,11 +655,15 @@ class TemuanController extends Controller
                 'status_name' => STATUS_TEMUAN[$item->status],
                 'last_stage' => $item->last_stage,
                 'stage_name' => $item->stage->nama,
-                'rekomendasi' => $item->rekomendasi->map(function ($item) {
-                    $item->status_name = STATUS_REKOMENDASI[$item->status] ?? 'undefined';
+                'rekomendasi' => $item->rekomendasi
+                    ->filter(function ($rek) {
+                        return !$rek->is_spi;
+                    })
+                    ->map(function ($item) {
+                        $item->status_name = STATUS_REKOMENDASI[$item->status] ?? 'undefined';
 
-                    return $item;
-                })
+                        return $item;
+                    })->values()
             ];
         });
 
@@ -756,8 +756,22 @@ class TemuanController extends Controller
         DB::beginTransaction();
         try {
             $temuan = Temuan::findOrFail($request->temuan_id);
+
+            $allSelesai = $temuan->rekomendasi
+                ->where('deleted', '!=', 1)
+                ->where('is_spi', null)
+                ->every(function ($rek) {
+                    return $rek->status == 2;
+                });
+
             $temuan->status = 1;
             $temuan->last_stage = 1;
+
+            if ($allSelesai) {
+                $temuan->status = 3;
+                $temuan->last_stage = 6;
+            }
+
             $temuan->save();
 
             foreach ($request->files as $row) {
@@ -778,10 +792,22 @@ class TemuanController extends Controller
                 'keterangan' => $request->keterangan,
                 'nama' => $temuan->stage->nama,
                 'user_id' => auth()->user()->id,
-                'action' => 'ditolak',
+                'action' => $allSelesai ? 'selesai' : 'ditolak',
                 'action_name' => 'Hasil SPI telah diinput',
                 'stage_before' => 5
             ]);
+
+            $lha = Lha::findOrFail($temuan->lha_id);
+            $selesaiAllLha = $lha->temuan
+                ->where('deleted', '!=', 1)
+                ->every(function ($rek) {
+                    return $rek->status == 2;
+                });
+
+            if ($selesaiAllLha) {
+                $lha->status = 3;
+                $lha->save();
+            }
 
             DB::commit();
             return response()->json([

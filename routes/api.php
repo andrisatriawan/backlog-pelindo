@@ -11,6 +11,7 @@ use App\Http\Controllers\api\FilesController;
 use App\Http\Controllers\api\GneratePdfController;
 use App\Http\Controllers\api\LhaController;
 use App\Http\Controllers\api\RekomendasiController;
+use App\Http\Controllers\api\StatistikController;
 use App\Http\Controllers\api\TemuanController;
 use App\Http\Controllers\api\TindakLanjutController;
 use App\Http\Controllers\api\TindakLanjutHasFileController;
@@ -160,6 +161,11 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::get('find-by-lha-spi/{id}', [FilesController::class, 'findByLhaSpi']);
         Route::get('{id}/find', [FilesController::class, 'find']);
         Route::delete('{id}/destroy', [FilesController::class, 'destroy']);
+    });
+
+    Route::prefix('statistik')->group(function () {
+        Route::get('log-stage', [StatistikController::class, 'logStage']);
+        Route::get('dashboard-summary', [StatistikController::class, 'dashboardSummary']);
     });
 
     Route::prefix('cetak')->group(function () {
