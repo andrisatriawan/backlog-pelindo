@@ -239,6 +239,7 @@ class TemuanController extends Controller
             $temuan->nomor = $request->nomor;
             $temuan->judul = $request->judul;
             $temuan->deskripsi = $request->deskripsi;
+            $temuan->status = '0';
 
             $temuan->save();
 
