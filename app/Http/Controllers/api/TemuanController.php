@@ -785,7 +785,7 @@ class TemuanController extends Controller
             $temuan->refresh();
 
             $temuan->rekomendasi()->update([
-                'is_spi' => true
+                'is_spi' => 1
             ]);
 
             $temuan->logStage()->create([

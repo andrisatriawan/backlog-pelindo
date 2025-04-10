@@ -38,7 +38,7 @@ class FilesController extends Controller
             $fileModel->file = $filename;
             $fileModel->direktori = $directory;
             if ($request->has('is_spi')) {
-                $fileModel->is_spi = $request->is_spi;
+                $fileModel->is_spi = $request->is_spi ? 1 : 0;
             }
             $fileModel->save();
 
@@ -140,7 +140,7 @@ class FilesController extends Controller
     public function findByLhaSpi($lha_id)
     {
         try {
-            $files = Files::where('lha_id', $lha_id)->where('deleted', '0')->where('is_spi', true)->get();
+            $files = Files::where('lha_id', $lha_id)->where('deleted', '0')->where('is_spi', 1)->get();
             foreach ($files as $file) {
                 $filePath = 'public/' . $file->direktori . '/' . $file->file;
 
