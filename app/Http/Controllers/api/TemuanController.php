@@ -19,83 +19,83 @@ class TemuanController extends Controller
      */
     public function index(Request $request)
     {
-        try {
-            $length = 10;
-            if ($request->has('page_size')) {
-                $length = $request->page_size;
-            }
-            $temuan = Temuan::where('deleted', '!=', '1');
-
-            if ($request->has('keyword')) {
-                $keyword = strtolower($request->keyword);
-                $temuan->whereRaw('LOWER(nomor) LIKE ?', ["%{$keyword}%"]);
-            }
-
-
-            $roleName = auth()->user()->roles->map(function ($item) {
-                return $item->name;
-            })->toArray();
-
-            if (!in_array('admin', $roleName)) {
-                $temuan->where('status', '!=', '0');
-            }
-
-            if (in_array('pic', $roleName)) {
-                $temuan->where('divisi_id', auth()->user()->divisi_id);
-            }
-
-            $roleIds = auth()->user()->roles->pluck('id');
-
-            foreach ($roleIds as $id) {
-                $temuan->where('last_stage', '>=', $id);
-            }
-
-            $temuan->orderBy('id', 'ASC');
-            $data = $temuan->paginate($length);
-
-
-            $customData = collect($data->items())->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'lha_id' => $item->lha_id,
-                    'unit_id' => $item->unit_id,
-                    'divisi_id' => $item->divisi_id,
-                    'departemen_id' => $item->departemen_id,
-                    'unit' => $item->unit->nama ?? '-',
-                    'divisi' => $item->divisi->nama ?? '-',
-                    'departemen' => $item->departemen->nama ?? '-',
-                    'judul' => $item->judul,
-                    'nomor' => $item->nomor,
-                    'deskripsi' => $item->deskripsi,
-                    'status' => $item->status,
-                    'status_name' => STATUS_TEMUAN[$item->status],
-                    'last_stage' => $item->last_stage,
-                    'stage_name' => $item->last_stage === 5 && $item->status == 1 ? 'Supervisor' :  $item->stage->nama
-                ];
-            });
-
-            return response()->json([
-                'status' => true,
-                'data' => $customData,
-                'pagination' => [
-                    'current_page' => $data->currentPage(),
-                    'total' => $data->total(),
-                    'per_page' => $data->perPage(),
-                    'last_page' => $data->lastPage(),
-                    'next_page_url' => $data->nextPageUrl(),
-                    'prev_page_url' => $data->previousPageUrl(),
-                ]
-            ]);
-        } catch (\Throwable $e) {
-            $code = 500;
-            if ($e->getCode()) {
-                $code = $e->getCode();
-            }
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-            ], $code);
+        // try {
+        $length = 10;
+        if ($request->has('page_size')) {
+            $length = $request->page_size;
         }
+        $temuan = Temuan::where('deleted', '!=', '1');
+
+        if ($request->has('keyword')) {
+            $keyword = strtolower($request->keyword);
+            $temuan->whereRaw('LOWER(nomor) LIKE ?', ["%{$keyword}%"]);
+        }
+
+
+        $roleName = auth()->user()->roles->map(function ($item) {
+            return $item->name;
+        })->toArray();
+
+        if (!in_array('admin', $roleName)) {
+            $temuan->where('status', '!=', '0');
+        }
+
+        if (in_array('pic', $roleName)) {
+            $temuan->where('divisi_id', auth()->user()->divisi_id);
+        }
+
+        $roleIds = auth()->user()->roles->pluck('id');
+
+        foreach ($roleIds as $id) {
+            $temuan->where('last_stage', '>=', $id);
+        }
+
+        $temuan->orderBy('id', 'ASC');
+        $data = $temuan->paginate($length);
+
+
+        $customData = collect($data->items())->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'lha_id' => $item->lha_id,
+                'unit_id' => $item->unit_id,
+                'divisi_id' => $item->divisi_id,
+                'departemen_id' => $item->departemen_id,
+                'unit' => $item->unit->nama ?? '-',
+                'divisi' => $item->divisi->nama ?? '-',
+                'departemen' => $item->departemen->nama ?? '-',
+                'judul' => $item->judul,
+                'nomor' => $item->nomor,
+                'deskripsi' => $item->deskripsi,
+                'status' => $item->status,
+                'status_name' => STATUS_TEMUAN[$item->status] ?? '-',
+                'last_stage' => $item->last_stage,
+                'stage_name' => $item->last_stage === '5' && $item->status == '1' ? 'Supervisor' :  $item->stage->nama
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'data' => $customData,
+            'pagination' => [
+                'current_page' => $data->currentPage(),
+                'total' => $data->total(),
+                'per_page' => $data->perPage(),
+                'last_page' => $data->lastPage(),
+                'next_page_url' => $data->nextPageUrl(),
+                'prev_page_url' => $data->previousPageUrl(),
+            ]
+        ]);
+        // } catch (\Throwable $e) {
+        //     $code = 500;
+        //     if ($e->getCode()) {
+        //         $code = $e->getCode();
+        //     }
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => $e->getMessage()
+        //     ], $code);
+        // }
     }
 
     /**
