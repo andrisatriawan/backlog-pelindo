@@ -126,7 +126,7 @@ class RekomendasiController extends Controller
                     'required',
                     // 'integer',
                     Rule::exists('temuan', 'id')->where(function ($query) {
-                        $query->where('deleted', 0);
+                        $query->where('deleted', '0');
                     }),
                 ],
             ]);
@@ -181,7 +181,7 @@ class RekomendasiController extends Controller
                     'required',
                     // 'integer',
                     Rule::exists('temuan', 'id')->where(function ($query) {
-                        $query->where('deleted', 0);
+                        $query->where('deleted', '0');
                     }),
                 ],
             ]);

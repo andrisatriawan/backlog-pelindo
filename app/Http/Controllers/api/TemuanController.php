@@ -297,7 +297,7 @@ class TemuanController extends Controller
                     'required',
                     // 'integer',
                     Rule::exists('lha', 'id')->where(function ($query) {
-                        $query->where('deleted', 0);
+                        $query->where('deleted', '0');
                     }),
                 ],
             ]);
