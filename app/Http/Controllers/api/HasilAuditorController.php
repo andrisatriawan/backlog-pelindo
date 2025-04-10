@@ -10,7 +10,7 @@ class HasilAuditorController extends Controller
 {
     public function index(Request $request)
     {
-        $temuan = Temuan::where('deleted', '0')->where('status', '>=', 2)->where('last_stage', '>=', 5);
+        $temuan = Temuan::where('deleted', '0')->where('status', '>=', '2')->where('last_stage', '>=', 5);
 
         if ($request->has('length')) {
             $temuan->paginate($request->length);

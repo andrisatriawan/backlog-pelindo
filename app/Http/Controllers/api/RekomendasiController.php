@@ -90,7 +90,7 @@ class RekomendasiController extends Controller
     public function findByTemuanId($id)
     {
         try {
-            $rekomendasi = Rekomendasi::where('temuan_id', $id)->where('deleted', 0)->get();
+            $rekomendasi = Rekomendasi::where('temuan_id', $id)->where('deleted', '0')->get();
 
             if (!$rekomendasi) {
                 return response()->json([

@@ -132,9 +132,9 @@ class DepartemenController extends Controller
                 'nama' => 'required|string|max:255',
                 'divisi_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('divisi', 'id')->where(function ($query) {
-                        $query->where('deleted', 0);
+                        $query->where('deleted', '0');
                     }),
                 ],
 
@@ -177,9 +177,9 @@ class DepartemenController extends Controller
                 'nama' => 'required|string|max:255',
                 'divisi_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('divisi', 'id')->where(function ($query) {
-                        $query->where('deleted', 0);
+                        $query->where('deleted', '0');
                     }),
                 ],
             ]);

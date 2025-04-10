@@ -81,14 +81,14 @@ class FileController extends Controller
                 'nama' => 'required|string|max:255',
                 'divisi_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('divisi', 'id')->where(function ($query) {
                         $query->where('deleted', '0');
                     }),
                 ],
                 'lha_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('lha', 'id')->where(function ($query) {
                         $query->where('deleted', '0');
                     }),
@@ -140,14 +140,14 @@ class FileController extends Controller
                 'nama' => 'required|string|max:255',
                 'divisi_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('divisi', 'id')->where(function ($query) {
                         $query->where('deleted', '0');
                     }),
                 ],
                 'lha_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('lha', 'id')->where(function ($query) {
                         $query->where('deleted', '0');
                     }),

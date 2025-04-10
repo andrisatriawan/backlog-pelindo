@@ -38,11 +38,11 @@ class StatistikController extends Controller
 
     public function dashboardSummary()
     {
-        $totalLha = Lha::where('deleted', '!=', 1)->count();
-        $totalTemuan = Temuan::where('deleted', '!=', 1)->count();
-        $temuanSelesai = Temuan::where('deleted', '!=', 1)->where('status', 3)->count();
-        $temuanAktif = Temuan::where('deleted', '!=', 1)->whereIn('status', [1, 4])->count();
-        $temuanAuditor = Temuan::where('deleted', '!=', 1)->where('status', 2)->count();
+        $totalLha = Lha::where('deleted', '!=', '1')->count();
+        $totalTemuan = Temuan::where('deleted', '!=', '1')->count();
+        $temuanSelesai = Temuan::where('deleted', '!=', '1')->where('status', '3')->count();
+        $temuanAktif = Temuan::where('deleted', '!=', '1')->whereIn('status', ['1', '4'])->count();
+        $temuanAuditor = Temuan::where('deleted', '!=', '1')->where('status', '2')->count();
 
         return response()->json([
             'status' => true,

@@ -629,7 +629,7 @@ class LhaController extends Controller
 
 
             $lha->whereHas('temuan', function ($query) {
-                $query->where('last_stage', '>=', 5)->where('status', 2);
+                $query->where('last_stage', '>=', '5')->where('status', '2');
             });
 
             if ($request->has('page_size')) {

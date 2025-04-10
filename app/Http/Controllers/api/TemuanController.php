@@ -37,7 +37,7 @@ class TemuanController extends Controller
             })->toArray();
 
             if (!in_array('admin', $roleName)) {
-                $temuan->where('status', '!=', 0);
+                $temuan->where('status', '!=', '0');
             }
 
             if (in_array('pic', $roleName)) {
@@ -129,7 +129,7 @@ class TemuanController extends Controller
                 'status_name' => STATUS_TEMUAN[$temuan->status],
                 'last_stage' => $temuan->last_stage,
                 'stage_name' => $temuan->stage->nama,
-                'rekomendasi' => $temuan->rekomendasi()->where('deleted', 0)->get()->map(function ($item) {
+                'rekomendasi' => $temuan->rekomendasi()->where('deleted', '0')->get()->map(function ($item) {
                     $data = $item->toArray();
                     $data['status_name'] = STATUS_REKOMENDASI[$item->status] ?? 'Unknown';
                     return $data;
@@ -167,7 +167,7 @@ class TemuanController extends Controller
             })->toArray();
 
             if (!in_array('admin', $roleName)) {
-                $temuan->where('status', '!=', 0);
+                $temuan->where('status', '!=', '0');
             }
 
             if (in_array('pic', $roleName)) {
@@ -758,7 +758,7 @@ class TemuanController extends Controller
             $temuan = Temuan::findOrFail($request->temuan_id);
 
             $allSelesai = $temuan->rekomendasi
-                ->where('deleted', '!=', 1)
+                ->where('deleted', '!=', '1')
                 ->where('is_spi', null)
                 ->every(function ($rek) {
                     return $rek->status == 2;
@@ -799,7 +799,7 @@ class TemuanController extends Controller
 
             $lha = Lha::findOrFail($temuan->lha_id);
             $selesaiAllLha = $lha->temuan
-                ->where('deleted', '!=', 1)
+                ->where('deleted', '!=', '1')
                 ->every(function ($rek) {
                     return $rek->status == 2;
                 });

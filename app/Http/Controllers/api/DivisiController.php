@@ -134,9 +134,9 @@ class DivisiController extends Controller
                 'nama' => 'required|string|max:255',
                 'unit_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('unit', 'id')->where(function ($query) {
-                        $query->where('deleted', 0);
+                        $query->where('deleted', '0');
                     }),
                 ],
 
@@ -179,9 +179,9 @@ class DivisiController extends Controller
                 'nama' => 'required|string|max:255',
                 'unit_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('unit', 'id')->where(function ($query) {
-                        $query->where('deleted', 0);
+                        $query->where('deleted', '0');
                     }),
                 ],
             ]);
