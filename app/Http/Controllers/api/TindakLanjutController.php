@@ -182,7 +182,7 @@ class TindakLanjutController extends Controller
                 'file_dukung' => 'required',
                 'rekomendasi_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('rekomendasi', 'id')->where(function ($query) {
                         $query->where('deleted', '0');
                     }),
@@ -247,7 +247,7 @@ class TindakLanjutController extends Controller
                 'file_dukung' => 'required',
                 'rekomendasi_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('rekomendasi', 'id')->where(function ($query) {
                         $query->where('deleted', '0');
                     }),

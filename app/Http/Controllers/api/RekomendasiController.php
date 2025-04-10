@@ -124,7 +124,7 @@ class RekomendasiController extends Controller
                 'nomor' => 'required',
                 'temuan_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('temuan', 'id')->where(function ($query) {
                         $query->where('deleted', 0);
                     }),
@@ -179,7 +179,7 @@ class RekomendasiController extends Controller
                 'nomor' => 'required',
                 'temuan_id' => [
                     'required',
-                    'integer',
+                    // 'integer',
                     Rule::exists('temuan', 'id')->where(function ($query) {
                         $query->where('deleted', 0);
                     }),
