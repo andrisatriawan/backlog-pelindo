@@ -117,6 +117,8 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
         Route::get('log-stage/{id}', [TemuanController::class, 'logStage']);
         Route::get('/hasil-auditor/{id}', [TemuanController::class, 'hasilAuditor']);
         Route::post('/input-hasil-auditor', [TemuanController::class, 'inputHasilAuditor']);
+        Route::post('/closing-temuan', [TemuanController::class, 'closingTemuan']);
+        Route::post('/selesai-closing-temuan', [TemuanController::class, 'selesaiClosingTemuan']);
     });
 
     Route::prefix('rekomendasi')->group(function () {

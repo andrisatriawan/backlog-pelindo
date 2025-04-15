@@ -611,7 +611,7 @@ class TemuanController extends Controller
                 'user_id' => auth()->user()->id,
                 'action' => 'selesai',
                 'stage_before' => 2,
-                'action_name' => 'Approved Supervisor'
+                'action_name' => 'Approved Selesai Internal'
             ]);
 
             DB::commit();
@@ -632,7 +632,7 @@ class TemuanController extends Controller
     {
         // try {
 
-        $temuan = Temuan::where('deleted', '!=', '1')->where('last_stage', '>=', 5)->where('lha_id', $id);
+        $temuan = Temuan::where('deleted', '!=', '1')->where('last_stage', '>=', 5)->where('status', '!=', '3')->where('lha_id', $id);
 
         $temuan->orderBy('id', 'ASC');
 
@@ -656,6 +656,8 @@ class TemuanController extends Controller
                 'status_name' => STATUS_TEMUAN[$item->status],
                 'last_stage' => $item->last_stage,
                 'stage_name' => $item->stage->nama,
+                'closing' => $item->closing,
+                'temuanHasFiles' => $item->temuanHasFiles,
                 'rekomendasi' => $item->rekomendasi
                     ->filter(function ($rek) {
                         return !$rek->is_spi;
@@ -758,28 +760,18 @@ class TemuanController extends Controller
         try {
             $temuan = Temuan::findOrFail($request->temuan_id);
 
-            $allSelesai = $temuan->rekomendasi
-                ->where('deleted', '!=', '1')
-                ->where('is_spi', null)
-                ->every(function ($rek) {
-                    return $rek->status == 2;
-                });
-
             $temuan->status = 1;
             $temuan->last_stage = 1;
 
-            if ($allSelesai) {
-                $temuan->status = 3;
-                $temuan->last_stage = 6;
-            }
-
             $temuan->save();
 
-            foreach ($request->files as $row) {
-                $temuan->temuanHasFiles()->create([
-                    'temuan_id' => $temuan->id,
-                    'file_id' => $row
-                ]);
+            if ($request->has('files')) {
+                foreach ($request->files as $row) {
+                    $temuan->temuanHasFiles()->create([
+                        'temuan_id' => $temuan->id,
+                        'file_id' => $row
+                    ]);
+                }
             }
 
             $temuan->refresh();
@@ -793,8 +785,91 @@ class TemuanController extends Controller
                 'keterangan' => $request->keterangan,
                 'nama' => $temuan->stage->nama,
                 'user_id' => auth()->user()->id,
-                'action' => $allSelesai ? 'selesai' : 'ditolak',
+                'action' => 'ditolak',
                 'action_name' => 'Hasil SPI telah diinput',
+                'stage_before' => 5
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Temuan berhasil disimpan ke status selesai.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function closingTemuan(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+
+            $temuan->closing = 1;
+
+            $temuan->save();
+
+            $temuan->temuanHasFiles()->create([
+                'temuan_id' => $temuan->id,
+                'file_id' => $request->input('file')
+            ]);
+
+
+            $temuan->refresh();
+
+            $temuan->rekomendasi()->update([
+                'is_spi' => 1
+            ]);
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'selesai',
+                'action_name' => 'Temuan di closing',
+                'stage_before' => 5
+            ]);
+
+            DB::commit();
+            return response()->json([
+                'status' => true,
+                'message' => 'Temuan berhasil disimpan ke status selesai.'
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function selesaiClosingTemuan(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $temuan = Temuan::findOrFail($request->temuan_id);
+
+            $temuan->status = 3;
+            $temuan->last_stage = 6;
+
+            $temuan->save();
+
+            $temuan->refresh();
+
+            $temuan->logStage()->create([
+                'stage' => $temuan->last_stage,
+                'keterangan' => $request->keterangan,
+                'nama' => $temuan->stage->nama,
+                'user_id' => auth()->user()->id,
+                'action' => 'selesai',
+                'action_name' => 'Temuan disetujui closing',
                 'stage_before' => 5
             ]);
 
@@ -813,7 +888,7 @@ class TemuanController extends Controller
             DB::commit();
             return response()->json([
                 'status' => true,
-                'message' => 'Temuan berhasil disimpan ke status selesai.'
+                'message' => 'Temuan berhasil di closing.'
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();

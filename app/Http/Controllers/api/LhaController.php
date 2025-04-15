@@ -345,6 +345,13 @@ class LhaController extends Controller
                             'last_stage' => $item->last_stage,
                             'stage' => $item->logStage()->where('stage', $item->last_stage)->latest()->first(),
                             'stage_name' => $item->last_stage === 5 && $item->status == 1 ? 'Supervisor' : $item->stage->nama,
+                            'closing' => $item->closing,
+                            'temuanHasFiles' => $item->temuanHasFiles->map(function ($file) {
+                                return [
+                                    'nama' => $file->file->nama,
+                                    'url' => url('storage/' . $file->file->direktori . '/' . $file->file->file)
+                                ];
+                            }),
                             'rekomendasi' => $rekomendasi->map(function ($item) {
                                 $tindaklanjut = $item->tindaklanjut->where('deleted', '0');
                                 return [

@@ -20,7 +20,8 @@ class Temuan extends Model
         'deskripsi',
         'status',
         'deleted',
-        'deleted_at'
+        'deleted_at',
+        'closing'
     ];
 
     public function lha()
