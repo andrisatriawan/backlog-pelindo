@@ -4,6 +4,7 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lha;
+use App\Models\StageHasRole;
 use App\Models\Temuan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Endroid\QrCode\Builder\Builder;
@@ -87,13 +88,122 @@ class GneratePdfController extends Controller
     public function monitoring($id)
     {
         $data = [];
-        $lha = Lha::with('temuan')->whereHas('temuan', function ($query) {
-            $query->where('unit_id', 1);
-        })->findOrFail($id);
+        $roleName = auth()->user()->roles->pluck('name')->toArray();
 
-        $divisi = $lha->temuan()->get()->groupBy('divisi_id');
+        $lha = Lha::findOrFail($id);
 
-        dd($divisi);
+        $temuan = $lha->temuan()->orderBy('id', 'asc')->get()->groupBy('divisi_id');
+
+        if (!in_array('admin', $roleName)) {
+            $roleIds = auth()->user()->roles->pluck('id');
+            $stageIds = StageHasRole::whereIn('role_id', $roleIds)->pluck('stage_id');
+            if ($lha->last_stage >= 2) {
+                $lha = Lha::whereHas('temuan', function ($query) use ($stageIds) {
+                    $query->where(function ($q) use ($stageIds) {
+                        foreach ($stageIds as $stageId) {
+                            $q->orWhere('last_stage', '>=', $stageId);
+                        }
+                    });
+                })->findOrFail($id);
+            }
+            if (array_intersect(['pic'], $roleName)) {
+                $temuan = $lha->temuan()
+                    ->where('divisi_id', auth()->user()->divisi_id)
+                    ->where(function ($q) use ($stageIds) {
+                        foreach ($stageIds as $stageId) {
+                            $q->orWhere('last_stage', '>=', $stageId);
+                        }
+                    })
+                    ->orderBy('id', 'asc')->get()
+                    ->groupBy('divisi_id');
+            } elseif (array_intersect(['penanggungjawab'], $roleName)) {
+                $temuan = $lha->temuan()
+                    ->where('unit_id', auth()->user()->unit_id)
+                    ->where(function ($q) use ($stageIds) {
+                        foreach ($stageIds as $stageId) {
+                            $q->orWhere('last_stage', '>=', $stageId);
+                        }
+                    })
+                    ->orderBy('id', 'asc')->get()
+                    ->groupBy('divisi_id');
+            }
+        }
+
+        $temuan = $temuan->map(function ($items, $divisiId) {
+            $items = $items->where('deleted', '0');
+            return [
+                'divisi_id' => $divisiId,
+                'nama_divisi' => $items->first()->divisi->nama ?? 'Unknown',
+                'data' => $items->map(function ($item) {
+                    $rekomendasi = $item->rekomendasi->where('deleted', '0');
+                    return [
+                        'id' => $item->id,
+                        'nomor' => $item->nomor,
+                        'judul' => $item->judul,
+                        'deskripsi' => $item->deskripsi,
+                        'status' => $item->status,
+                        'status_name' => STATUS_TEMUAN[$item->status],
+                        'last_stage' => $item->last_stage,
+                        'stage' => $item->logStage()->where('stage', $item->last_stage)->latest()->first(),
+                        'stage_name' => $item->last_stage === 5 && $item->status == 1 ? 'Supervisor' : $item->stage->nama,
+                        'closing' => $item->closing,
+                        'temuanHasFiles' => $item->temuanHasFiles->map(function ($file) {
+                            return [
+                                'nama' => $file->file->nama,
+                                'url' => url('storage/' . $file->file->direktori . '/' . $file->file->file)
+                            ];
+                        }),
+                        'rekomendasi' => $rekomendasi->map(function ($item) {
+                            $tindaklanjut = $item->tindaklanjut->where('deleted', '0');
+                            return [
+                                'id' => $item->id,
+                                'nomor' => $item->nomor,
+                                'deskripsi' => $item->deskripsi,
+                                'batas_tanggal' => $item->batas_tanggal,
+                                'tanggal_selesai' => $item->tanggal_selesai,
+                                'status' => $item->status,
+                                'status_name' => STATUS_REKOMENDASI[$item->status] ?? '-',
+                                'tindaklanjut' => $tindaklanjut->map(function ($item) {
+                                    return [
+                                        'id' => $item->id,
+                                        'deskripsi' => $item->deskripsi,
+                                        'tanggal' => $item->tanggal,
+                                        'files' => $item->file->map(function ($file) {
+
+                                            if ($file->file && $file->file->deleted == 0) {
+                                                return [
+                                                    'nama' => $file->file->nama,
+                                                    'url' => url('storage/' . $file->file->direktori . '/' . $file->file->file)
+                                                ];
+                                            }
+                                            return null;
+                                        })
+                                            ->filter() // Hapus nilai null
+                                            ->values()
+                                    ];
+                                })
+                            ];
+                        })
+                    ];
+                })
+            ];
+        });
+        $response = [
+            'id' => $lha->id,
+            'judul' => $lha->judul,
+            'no_lha' => $lha->no_lha,
+            'tanggal' => $lha->tanggal,
+            'periode' => $lha->periode,
+            'deskripsi' => $lha->deskripsi,
+            'status' => $lha->status,
+            'last_stage' => $lha->last_stage,
+            'stage_name' => $lha->stage->nama ?? 'undefined',
+            'status_name' => STATUS_LHA[$lha->status] ?? '-',
+            'stage' => $lha->logStage()->where('stage', $lha->last_stage)->latest()->first(),
+            'temuan' => $temuan,
+        ];
+
+        $data['data'] = $response;
 
         $pdf = Pdf::loadView('cetak.monitoring', $data)->setPaper('A4', 'landscape');
 

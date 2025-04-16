@@ -172,6 +172,7 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
 
     Route::prefix('cetak')->group(function () {
         Route::get('temuan/{id}', [GneratePdfController::class, 'temuan']);
+        Route::get('monitoring/{id}', [GneratePdfController::class, 'monitoring']);
     });
 
     Route::post('logout', [AuthController::class, 'logout']);
