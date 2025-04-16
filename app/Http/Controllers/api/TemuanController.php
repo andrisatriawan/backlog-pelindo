@@ -873,15 +873,15 @@ class TemuanController extends Controller
                 'stage_before' => 5
             ]);
 
-            $lha = Lha::findOrFail($temuan->lha_id);
+            $lha = Lha::with('temuan')->findOrFail($temuan->lha_id);
             $selesaiAllLha = $lha->temuan
                 ->where('deleted', '!=', '1')
                 ->every(function ($rek) {
-                    return $rek->status == 2;
+                    return $rek->status == 3;
                 });
 
             if ($selesaiAllLha) {
-                $lha->status = 3;
+                $lha->status = '3';
                 $lha->save();
             }
 
