@@ -84,7 +84,7 @@
 </head>
 
 <body>
-    @if ($data->status != 2)
+    @if ($data->status != 2 && $data->last_stage <= 5)
         <div class="watermark">{{ $data->last_stage == 5 && $data->status == 1 ? 'DRAF FINAL' : 'DRAF' }}</div>
     @endif
     <!-- Header Section -->
@@ -127,6 +127,12 @@
             <td>
                 <table class="nested-table">
                     @foreach ($data->rekomendasi as $key => $row)
+                        @if ($data->last_stage == 6 && $row->is_spi)
+                            <tr>
+                                <td style="width: 20px">{{ chr($key + 97) }}.</td>
+                                <td>{{ $row->nomor }} / {{ $row->deskripsi }}</td>
+                            </tr>
+                        @endif
                         @if (!$row->is_spi)
                             <tr>
                                 <td style="width: 20px">{{ chr($key + 97) }}.</td>
@@ -144,6 +150,14 @@
             <td class="value">
                 <table class="nested-table">
                     @foreach ($data->rekomendasi as $rekomendasi)
+                        @if ($data->last_stage == 6 && $rekomendasi->is_spi)
+                            @foreach ($rekomendasi->tindaklanjut as $key => $row)
+                                <tr>
+                                    <td style="width: 20px">{{ chr((int) $key + 97) }}.</td>
+                                    <td>{{ $rekomendasi->nomor }} / {{ $row->deskripsi }}</td>
+                                </tr>
+                            @endforeach
+                        @endif
                         @if (!$rekomendasi->is_spi)
                             @foreach ($rekomendasi->tindaklanjut as $key => $row)
                                 <tr>
@@ -153,13 +167,23 @@
                             @endforeach
                         @endif
                     @endforeach
-
                 </table>
             </td>
         </tr>
         <tr>
             <td>6.</td>
-            <td class="label" colspan="3">Dokumen Pendukung (Lampiran)</td>
+            <td class="label">Dokumen Pendukung</td>
+            <td>:</td>
+            <td class="value">
+                <table class="nested-table">
+                    @foreach ($files as $file)
+                        <tr>
+                            <td style="width: 20px">{{ chr((int) $key + 97) }}.</td>
+                            <td>{{ $file->nama }}</td>
+                        </tr>
+                    @endforeach
+                </table>
+            </td>
         </tr>
         <tr>
             <td></td>

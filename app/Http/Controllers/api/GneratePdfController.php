@@ -29,7 +29,7 @@ class GneratePdfController extends Controller
             $temuan = Temuan::with('rekomendasi.tindaklanjut.file.file')->findOrFail($id);
             $data['data'] = $temuan;
             $data['qrCode'] = null;
-            if ($temuan->status == 2) {
+            if ($temuan->status == 2 || $temuan->status == 3) {
                 $user = $temuan->logStage()->where('stage', 4)->latest()->first();
                 $text = "Nama : {$user->user->nama}\n"
                     . "NIP  : {$user->user->nip}\n"
@@ -48,14 +48,15 @@ class GneratePdfController extends Controller
 
                 $data['qrCode'] = $qrCodeBase64;
             }
-            $pdf = Pdf::loadView('cetak.temuan', $data)->setPaper('A4');
-
-            $temuanPdf = $pdf->stream('Form tindak lanjut LHA.pdf');
-
             $files = $temuan->rekomendasi
                 ->flatMap(fn($r) => $r->tindaklanjut)
                 ->flatMap(fn($tl) => $tl->file)
                 ->map(fn($thf) => $thf->file);
+            $data['files'] = $files;
+
+            $pdf = Pdf::loadView('cetak.temuan', $data)->setPaper('A4');
+
+            $temuanPdf = $pdf->stream('Form tindak lanjut LHA.pdf');
 
             $mergedPdf = $temuanPdf;
 
