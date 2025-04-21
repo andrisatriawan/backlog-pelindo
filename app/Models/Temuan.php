@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Temuan extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'temuan';
     protected $fillable = [
@@ -23,6 +25,20 @@ class Temuan extends Model
         'deleted_at',
         'closing'
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly($this->fillable)
+            ->logOnlyDirty()
+            ->useLogName('temuan');
+    }
+
+    // Custom deskripsi log
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "Temuan has been {$eventName}";
+    }
 
     public function lha()
     {

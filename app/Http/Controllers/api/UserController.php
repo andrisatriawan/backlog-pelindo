@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -260,6 +261,60 @@ class UserController extends Controller
                     'next_page_url' => $data->nextPageUrl(),
                     'prev_page_url' => $data->previousPageUrl(),
                 ]
+            ], 200);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        try {
+            $user = User::findOrFail(auth()->user()->id);
+            $request->validate([
+                'password' => 'required|min:8|confirmed',
+                'old_password' => 'required',
+                'password_confirmation' => 'required'
+            ]);
+            if (!Hash::check($request->old_password, $user->password)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Password lama tidak sesuai.'
+                ], 422);
+            }
+            if ($request->password !== $request->password_confirmation) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Password konfirmasi tidak sesuai.'
+                ], 422);
+            }
+            if (Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Password baru tidak boleh sama dengan password lama.'
+                ], 422);
+            }
+            if (strlen($request->password) < 8) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Password minimal 8 karakter.'
+                ], 422);
+            }
+            if (preg_match('/\s/', $request->password)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Password tidak boleh mengandung spasi.'
+                ], 422);
+            }
+            $user->password = Hash::make($request->password);
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Password berhasil diperbarui.'
             ], 200);
         } catch (\Throwable $e) {
             return response()->json([

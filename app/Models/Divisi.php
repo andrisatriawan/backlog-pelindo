@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Divisi extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'divisi';
     protected $fillable = [
@@ -16,6 +18,20 @@ class Divisi extends Model
         'deleted',
         'deleted_at'
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly($this->fillable)
+            ->logOnlyDirty()
+            ->useLogName('divisi');
+    }
+
+    // Custom deskripsi log
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "Divisi has been {$eventName}";
+    }
 
     public function unit()
     {

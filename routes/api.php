@@ -34,6 +34,7 @@ Route::post('v1/refresh-token', [AuthController::class, 'refreshToken']);
 Route::middleware('auth.api')->prefix('v1')->group(function () {
     Route::prefix('user')->group(function () {
         Route::get('profile', [UserController::class, 'profile']);
+        Route::post('profile/change-password', [UserController::class, 'changePassword']);
         Route::get('/', [UserController::class, 'index']);
         Route::get('/{id}', [UserController::class, 'find']);
         Route::put('/{id}', [UserController::class, 'update']);

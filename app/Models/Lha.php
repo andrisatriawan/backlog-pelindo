@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Lha extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'lha';
     protected $fillable = [
@@ -22,6 +24,20 @@ class Lha extends Model
         'deleted',
         'deleted_at'
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly($this->fillable)
+            ->logOnlyDirty()
+            ->useLogName('lha');
+    }
+
+    // Custom deskripsi log
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "LHA has been {$eventName}";
+    }
 
     public function user()
     {

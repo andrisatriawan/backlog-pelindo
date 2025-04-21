@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Tindaklanjut extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'tindaklanjut';
     protected $fillable = [
@@ -17,6 +19,21 @@ class Tindaklanjut extends Model
         'deleted',
         'deleted_at'
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly($this->fillable)
+            ->logOnlyDirty()
+            ->useLogName('tindaklanjut');
+    }
+
+
+    // Custom deskripsi log
+    public function getDescriptionForEvent(string $eventName): string
+    {
+        return "Tindaklanjut has been {$eventName}";
+    }
 
     public function rekomendasi()
     {

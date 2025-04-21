@@ -832,14 +832,14 @@ class TemuanController extends Controller
                 'nama' => $temuan->stage->nama,
                 'user_id' => auth()->user()->id,
                 'action' => 'selesai',
-                'action_name' => 'Temuan di closing',
+                'action_name' => 'Temuan yang akan diclosing',
                 'stage_before' => 5
             ]);
 
             DB::commit();
             return response()->json([
                 'status' => true,
-                'message' => 'Temuan berhasil disimpan ke status selesai.'
+                'message' => 'Temuan berhasil dikirim ke supervisor untuk diclosing.'
             ]);
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -869,7 +869,7 @@ class TemuanController extends Controller
                 'nama' => $temuan->stage->nama,
                 'user_id' => auth()->user()->id,
                 'action' => 'selesai',
-                'action_name' => 'Temuan disetujui closing',
+                'action_name' => 'Temuan diclosing',
                 'stage_before' => 5
             ]);
 
