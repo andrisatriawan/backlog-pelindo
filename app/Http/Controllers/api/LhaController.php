@@ -422,6 +422,21 @@ class LhaController extends Controller
         DB::beginTransaction();
         try {
             $lha = Lha::findOrFail($request->lha_id);
+            if (!$lha) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA tidak ditemukan'
+                ], 404);
+            }
+            if ($lha->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA sudah dihapus'
+                ], 404);
+            }
+            $request->validate([
+                'keterangan' => 'required',
+            ]);
 
             $lha->last_stage = 2;
             $lha->status = 1;
@@ -463,6 +478,11 @@ class LhaController extends Controller
                 'status' => true,
                 'message' => 'Berhasil dikirim ke Supervisor'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
