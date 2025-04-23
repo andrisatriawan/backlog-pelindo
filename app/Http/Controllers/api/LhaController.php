@@ -421,13 +421,8 @@ class LhaController extends Controller
     {
         DB::beginTransaction();
         try {
-            $lha = Lha::findOrFail($request->lha_id);
-            if (!$lha) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'LHA tidak ditemukan'
-                ], 404);
-            }
+            $lha = Lha::find($request->lha_id);
+
             if ($lha->deleted == 1) {
                 return response()->json([
                     'status' => false,
@@ -478,6 +473,11 @@ class LhaController extends Controller
                 'status' => true,
                 'message' => 'Berhasil dikirim ke Supervisor'
             ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'LHA tidak ditemukan'
+            ], 404);
         } catch (ValidationException $e) {
             return response()->json([
                 'status' => false,
