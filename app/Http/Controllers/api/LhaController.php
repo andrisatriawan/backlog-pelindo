@@ -195,7 +195,7 @@ class LhaController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $lha = Lha::findOrFail($id);
+            $lha = Lha::find($id);
             if (!$lha || $lha->deleted == 1) {
                 return response()->json([
                     'status' => false,
