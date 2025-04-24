@@ -122,6 +122,8 @@ class RekomendasiController extends Controller
         try {
             $validated = $request->validate([
                 'nomor' => 'required',
+                'deskripsi' => 'required',
+                'batas_tanggal' => 'required',
                 'temuan_id' => [
                     'required',
                     // 'integer',
@@ -177,6 +179,8 @@ class RekomendasiController extends Controller
 
             $validated = $request->validate([
                 'nomor' => 'required',
+                'deskripsi' => 'required',
+                'batas_tanggal' => 'required',
                 'temuan_id' => [
                     'required',
                     // 'integer',
