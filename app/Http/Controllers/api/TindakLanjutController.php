@@ -233,7 +233,7 @@ class TindakLanjutController extends Controller
     {
         DB::beginTransaction();
         try {
-            $tindaklanjut = Tindaklanjut::findOrFail($id);
+            $tindaklanjut = Tindaklanjut::find($id);
             if (!$tindaklanjut || $tindaklanjut->deleted == 1) {
                 return response()->json([
                     'status' => false,
