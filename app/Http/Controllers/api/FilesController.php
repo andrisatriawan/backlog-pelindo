@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class FilesController extends Controller
 {
@@ -17,6 +18,14 @@ class FilesController extends Controller
         try {
             $request->validate([
                 'file' => 'required|mimes:pdf',
+                'nama' => 'required',
+                'lha_id' => [
+                    'required',
+                    // 'integer',
+                    Rule::exists('lha', 'id')->where(function ($query) {
+                        $query->where('deleted', '0');
+                    }),
+                ],
             ]);
             if (!$request->hasFile('file')) {
                 throw new Exception('Tidak ada file yang diupload.');

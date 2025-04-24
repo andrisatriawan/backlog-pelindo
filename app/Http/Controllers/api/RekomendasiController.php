@@ -166,10 +166,10 @@ class RekomendasiController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
         try {
-            $rekomendasi = Rekomendasi::findOrFail($id);
+            $rekomendasi = Rekomendasi::find($id);
             if (!$rekomendasi || $rekomendasi->deleted == 1) {
                 return response()->json([
                     'status' => false,
