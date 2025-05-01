@@ -25,6 +25,14 @@ class AuthController extends Controller
                 throw new Exception('Unauthorized, nip or password is wrong!', 401);
             }
 
+            if ($user->is_active == 0) {
+                throw new Exception('Unauthorized, user is not active!', 401);
+            }
+
+            if ($user->deleted == 1) {
+                throw new Exception('Unauthorized, user is deleted!', 401);
+            }
+
             $expires = now()->addDay();
             $token = $user->createToken('access_token', ['*'], $expires)->plainTextToken;
             $token = explode('|', $token)[1];

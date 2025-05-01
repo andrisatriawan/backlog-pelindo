@@ -8,6 +8,7 @@ use App\Models\Files;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -16,27 +17,40 @@ class FilesController extends Controller
     public function upload(Request $request)
     {
         try {
-            $request->validate([
-                'file' => 'required|mimes:pdf',
-                'nama' => 'required',
-                'lha_id' => [
-                    'required',
-                    // 'integer',
-                    Rule::exists('lha', 'id')->where(function ($query) {
-                        $query->where('deleted', '0');
-                    }),
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'file' => 'required|mimes:pdf|max:2048',
+                    'nama' => 'required',
+                    'lha_id' => [
+                        'required',
+                        Rule::exists('lha', 'id')->where(function ($query) {
+                            $query->where('deleted', '0');
+                        }),
+                    ],
                 ],
-            ]);
+                [
+                    'file.mimes' => 'File harus berupa PDF.',
+                    'file.max'   => 'Ukuran file maksimal 2MB.',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+
             if (!$request->hasFile('file')) {
                 throw new Exception('Tidak ada file yang diupload.');
             }
             $user = auth()->user();
-            $divisi_id = $user->divisi_id ?? 1;
+            $divisi_id = $user->divisi_id ?? null;
             $lha_id = $request->lha_id;
             $nama = $request->nama;
             $file = $request->file('file');
             $directory = 'lha-' . $lha_id;
-            $filename = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filename = Str::random(10) . '_' . time() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('public/' . $directory, $filename);
 
             $fileModel = new Files();
@@ -68,6 +82,38 @@ class FilesController extends Controller
     {
         try {
             $files = Files::where('lha_id', $lha_id)->where('deleted', '0')->get();
+            foreach ($files as $file) {
+                $filePath = 'public/' . $file->direktori . '/' . $file->file;
+
+                if (Storage::exists($filePath)) {
+                    $file->url_file = url('storage/' . $file->direktori . '/' . $file->file);
+                } else {
+                    $file->url_file = null;
+                }
+            }
+            $response = $files->map(
+                function ($file) {
+                    return [
+                        'id' => $file->id,
+                        'nama' => $file->nama,
+                        'url_file' => $file->url_file,
+                    ];
+                }
+            );
+            return response()->json([
+                'status' => true,
+                'message' => 'Berhasil mengambil files.',
+                'data' => $response
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function findByDivisi(Request $request, $divisi_id)
+    {
+        try {
+            $files = Files::where('divisi_id', $divisi_id)->where('lha_id', $request->lha_id)->where('deleted', '0')->get();
             foreach ($files as $file) {
                 $filePath = 'public/' . $file->direktori . '/' . $file->file;
 

@@ -49,8 +49,11 @@ class GneratePdfController extends Controller
                 $data['qrCode'] = $qrCodeBase64;
             }
             $files = $temuan->rekomendasi
+                ->filter(fn($r) => is_null($r->is_spi) || $r->is_spi == 0)
                 ->flatMap(fn($r) => $r->tindaklanjut)
                 ->flatMap(fn($tl) => $tl->file)
+                ->groupBy('file_id') // gabungkan berdasarkan id file
+                ->map(fn($group) => $group->first()) // ambil satu file dari setiap grup
                 ->map(fn($thf) => $thf->file);
             $data['files'] = $files;
 

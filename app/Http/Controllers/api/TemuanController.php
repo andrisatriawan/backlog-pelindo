@@ -9,6 +9,7 @@ use App\Models\Temuan;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -129,6 +130,7 @@ class TemuanController extends Controller
                 'status_name' => STATUS_TEMUAN[$temuan->status],
                 'last_stage' => $temuan->last_stage,
                 'stage_name' => $temuan->stage->nama,
+                'file' => $temuan->file ? url('storage/' .  $temuan->file) : null,
                 'rekomendasi' => $temuan->rekomendasi()->where('deleted', '0')->get()->map(function ($item) {
                     $data = $item->toArray();
                     $data['status_name'] = STATUS_REKOMENDASI[$item->status] ?? 'Unknown';
@@ -219,16 +221,40 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $validated = $request->validate([
-                'nomor' => 'required',
-                'lha_id' => [
-                    'required',
-                    // 'integer',
-                    Rule::exists('lha', 'id')->where(function ($query) {
-                        $query->where('deleted', '0')->where('status', '0');
-                    }),
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'nomor' => 'required',
+                    'lha_id' => [
+                        'required',
+                        Rule::exists('lha', 'id')->where(function ($query) {
+                            $query->where('deleted', '0')->where('status', '0');
+                        }),
+                    ],
+                    'file' => 'required|mimes:pdf|max:2048'
                 ],
-            ]);
+                [
+                    'file.mimes' => 'File harus berupa PDF.',
+                    'file.max'   => 'Ukuran file maksimal 2MB.',
+                    'lha_id.exists'  => 'LHA yang Anda pilih sudah dihapus atau sudah dalam proses (bukan draf).',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+
+                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+                $file->storeAs('temuan', $fileName, 'public');
+
+                $fileName = 'temuan/' . $fileName;
+            }
 
             $temuan = new Temuan();
 
@@ -239,6 +265,7 @@ class TemuanController extends Controller
             $temuan->nomor = $request->nomor;
             $temuan->judul = $request->judul;
             $temuan->deskripsi = $request->deskripsi;
+            $temuan->file = $fileName;
             $temuan->status = '0';
 
             $temuan->save();
@@ -284,24 +311,44 @@ class TemuanController extends Controller
             $temuan = Temuan::findOrFail($id);
             if (!$temuan || $temuan->deleted == 1) {
                 return response()->json([
-                    // Rollback the transaction
                     'status' => false,
-
-                    // Return a JSON response
                     'message' => 'Temuan tidak ditemukan'
                 ], 404);
             }
 
-            $validated = $request->validate([
-                'nomor' => 'required',
-                'lha_id' => [
-                    'required',
-                    // 'integer',
-                    Rule::exists('lha', 'id')->where(function ($query) {
-                        $query->where('deleted', '0');
-                    }),
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'nomor' => 'required',
+                    'lha_id' => [
+                        'required',
+                        Rule::exists('lha', 'id')->where(function ($query) {
+                            $query->where('deleted', '0')->where('status', '0');
+                        }),
+                    ],
+                    'file' => 'nullable|mimes:pdf|max:2048'
                 ],
-            ]);
+                [
+                    'file.mimes' => 'File harus berupa PDF.',
+                    'file.max'   => 'Ukuran file maksimal 2MB.',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+
+                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+                $file->storeAs('temuan', $fileName, 'public');
+
+                $fileName = 'temuan/' . $fileName;
+            }
 
             $temuan->lha_id = $request->lha_id;
             $temuan->unit_id = $request->unit_id;
@@ -310,6 +357,7 @@ class TemuanController extends Controller
             $temuan->nomor = $request->nomor;
             $temuan->judul = $request->judul;
             $temuan->deskripsi = $request->deskripsi;
+            $temuan->file = $fileName;
 
             $temuan->save();
 
@@ -822,8 +870,8 @@ class TemuanController extends Controller
 
             $temuan->refresh();
 
-            $temuan->rekomendasi()->update([
-                'is_spi' => 1
+            $temuan->rekomendasi()->where('is_spi', null)->update([
+                'is_spi' => 0
             ]);
 
             $temuan->logStage()->create([

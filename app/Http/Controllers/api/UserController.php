@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -105,6 +106,31 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'nama'           => 'required|string|max:255',
+            'nip'            => 'required|string|max:100|unique:users,nip',
+            'password'       => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$/'
+            ],
+            'is_active'      => 'required',
+            'unit_id'        => 'nullable|exists:unit,id',
+            'divisi_id'      => 'nullable|exists:divisi,id',
+            'departemen_id'  => 'nullable|exists:departemen,id',
+            'jabatan_id'     => 'nullable|exists:jabatan,id',
+        ], [
+            'password.regex' => 'Password harus mengandung minimal 1 huruf besar, 1 huruf kecil, 1 angka, dan 1 karakter spesial.',
+            'password.min'   => 'Password minimal harus 8 karakter.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
+
         DB::beginTransaction();
         try {
             $user = new User();
@@ -161,6 +187,29 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'nama'           => 'required|string|max:255',
+            'password'       => [
+                'nullable',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$/'
+            ],
+            'is_active'      => 'required',
+            'unit_id'        => 'nullable|exists:unit,id',
+            'divisi_id'      => 'nullable|exists:divisi,id',
+            'departemen_id'  => 'nullable|exists:departemen,id',
+            'jabatan_id'     => 'nullable|exists:jabatan,id',
+        ], [
+            'password.regex' => 'Password harus mengandung minimal 1 huruf besar, 1 huruf kecil, 1 angka, dan 1 karakter spesial.',
+            'password.min'   => 'Password minimal harus 8 karakter.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $validator->errors()->first()
+            ], 422);
+        }
         DB::beginTransaction();
         try {
             $user = User::findOrFail($id);
@@ -231,7 +280,7 @@ class UserController extends Controller
                     "id" => $item->id,
                     "nip" => $item->nip,
                     "nama" => $item->nama,
-                    "is_active" => $item->is_active === '1' ? true : false,
+                    "is_active" => $item->is_active == 1 ? 'Aktif' : 'Tidak Aktif',
                     "unit_id" => $item->unit_id,
                     "divisi_id" => $item->divisi_id,
                     "departemen_id" => $item->departemen_id,
@@ -274,11 +323,26 @@ class UserController extends Controller
     {
         try {
             $user = User::findOrFail(auth()->user()->id);
-            $request->validate([
-                'password' => 'required|min:8|confirmed',
+            $validator = Validator::make($request->all(), [
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$/'
+                ],
                 'old_password' => 'required',
                 'password_confirmation' => 'required'
+            ], [
+                'password.regex' => 'Password harus mengandung minimal 1 huruf besar, 1 huruf kecil, 1 angka, dan 1 karakter spesial.',
+                'password.min'   => 'Password minimal harus 8 karakter.',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
+
             if (!Hash::check($request->old_password, $user->password)) {
                 return response()->json([
                     'status' => false,

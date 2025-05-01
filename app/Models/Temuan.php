@@ -23,7 +23,8 @@ class Temuan extends Model
         'status',
         'deleted',
         'deleted_at',
-        'closing'
+        'closing',
+        'file'
     ];
 
     public function getActivitylogOptions(): LogOptions

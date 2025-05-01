@@ -10,6 +10,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class LhaController extends Controller
@@ -141,12 +142,18 @@ class LhaController extends Controller
     {
         DB::beginTransaction();
         try {
-            $validate = $request->validate([
-                'no_lha' => 'required',
-                'judul' => 'required',
-                'periode' => 'required',
-                'deskripsi' => 'required'
+            $validator = Validator::make($request->all(), [
+                'no_lha'    => 'required|unique:lha,no_lha',
+                'judul'     => 'required|unique:lha,judul',
+                'periode'   => 'required',
+                'deskripsi' => 'required',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => $validator->errors()->first()
+                ], 422);
+            }
 
             $lha = new Lha();
 
@@ -362,6 +369,7 @@ class LhaController extends Controller
                                     'tanggal_selesai' => $item->tanggal_selesai,
                                     'status' => $item->status,
                                     'status_name' => STATUS_REKOMENDASI[$item->status] ?? '-',
+                                    'is_spi' => $item->is_spi,
                                     'tindaklanjut' => $tindaklanjut->map(function ($item) {
                                         return [
                                             'id' => $item->id,

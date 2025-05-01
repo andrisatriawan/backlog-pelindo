@@ -161,6 +161,7 @@ Route::middleware('auth.api')->prefix('v1')->group(function () {
     Route::prefix('files')->group(function () {
         Route::post('upload', [FilesController::class, 'upload']);
         Route::get('find-by-lha/{id}', [FilesController::class, 'findByLha']);
+        Route::get('find-by-divisi/{id}', [FilesController::class, 'findByDivisi']);
         Route::get('find-by-lha-spi/{id}', [FilesController::class, 'findByLhaSpi']);
         Route::get('{id}/find', [FilesController::class, 'find']);
         Route::delete('{id}/destroy', [FilesController::class, 'destroy']);

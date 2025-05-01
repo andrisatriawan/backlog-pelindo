@@ -126,18 +126,27 @@
             <td>:</td>
             <td>
                 <table class="nested-table">
+                    @php
+                        $counter = 0;
+                    @endphp
                     @foreach ($data->rekomendasi as $key => $row)
-                        @if ($data->last_stage == 6 && $row->is_spi)
+                        {{-- @if ($data->last_stage == 6 && $row->is_spi == 0)
                             <tr>
-                                <td style="width: 20px">{{ chr($key + 97) }}.</td>
+                                <td style="width: 20px">{{ chr($counter + 97) }}.</td>
                                 <td>{{ $row->nomor }} / {{ $row->deskripsi }}</td>
                             </tr>
-                        @endif
-                        @if (!$row->is_spi)
+                            @php
+                                $counter++;
+                            @endphp
+                        @endif --}}
+                        @if ($row->is_spi == null || $row->is_spi == 0)
                             <tr>
-                                <td style="width: 20px">{{ chr($key + 97) }}.</td>
+                                <td style="width: 20px">{{ chr($counter + 97) }}.</td>
                                 <td>{{ $row->nomor }} / {{ $row->deskripsi }}</td>
                             </tr>
+                            @php
+                                $counter++;
+                            @endphp
                         @endif
                     @endforeach
                 </table>
@@ -149,22 +158,37 @@
             <td>:</td>
             <td class="value">
                 <table class="nested-table">
+                    @php
+                        $counter = 0;
+                    @endphp
                     @foreach ($data->rekomendasi as $rekomendasi)
-                        @if ($data->last_stage == 6 && $rekomendasi->is_spi)
+                        {{-- @if ($data->last_stage == 6 && $rekomendasi->is_spi)
                             @foreach ($rekomendasi->tindaklanjut as $key => $row)
+                                @php
+                                    $fileNames = $row->file->pluck('file.nama')->join(', ');
+                                @endphp
                                 <tr>
-                                    <td style="width: 20px">{{ chr((int) $key + 97) }}.</td>
-                                    <td>{{ $rekomendasi->nomor }} / {{ $row->deskripsi }}</td>
+                                    <td style="width: 20px">{{ chr((int) $counter + 97) }}.</td>
+                                    <td>{{ $rekomendasi->nomor }} / {{ $row->deskripsi }} ({{ $fileNames }})</td>
                                 </tr>
                             @endforeach
-                        @endif
+                            @php
+                                $counter++;
+                            @endphp
+                        @endif --}}
                         @if (!$rekomendasi->is_spi)
                             @foreach ($rekomendasi->tindaklanjut as $key => $row)
+                                @php
+                                    $fileNames = $row->file->pluck('file.nama')->join(', ');
+                                @endphp
                                 <tr>
-                                    <td style="width: 20px">{{ chr((int) $key + 97) }}.</td>
-                                    <td>{{ $rekomendasi->nomor }} / {{ $row->deskripsi }}</td>
+                                    <td style="width: 20px">{{ chr((int) $counter + 97) }}.</td>
+                                    <td>{{ $rekomendasi->nomor }} / {{ $row->deskripsi }} ({{ $fileNames }})</td>
                                 </tr>
                             @endforeach
+                            @php
+                                $counter++;
+                            @endphp
                         @endif
                     @endforeach
                 </table>
@@ -176,11 +200,17 @@
             <td>:</td>
             <td class="value">
                 <table class="nested-table">
+                    @php
+                        $counter = 0;
+                    @endphp
                     @foreach ($files as $file)
                         <tr>
-                            <td style="width: 20px">{{ chr((int) $key + 97) }}.</td>
+                            <td style="width: 20px">{{ chr((int) $counter + 97) }}.</td>
                             <td>{{ $file->nama }}</td>
                         </tr>
+                        @php
+                            $counter++;
+                        @endphp
                     @endforeach
                 </table>
             </td>
