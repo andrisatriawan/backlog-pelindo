@@ -415,7 +415,7 @@ class TemuanController extends Controller
             if (!$temuan || $temuan->deleted == 0) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Temuan tidak ditemukan atau sudah aktif'
+                    'message' => 'Temuan tidak ditemukan'
                 ], 404);
             }
 
@@ -438,7 +438,19 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
+
             $stageNow = $temuan->stage->nama;
             $temuan->last_stage = 3;
             $temuan->save();
@@ -458,8 +470,13 @@ class TemuanController extends Controller
             DB::commit();
             return response()->json([
                 'status' => true,
-                'message' => 'Berhasil di teruskan.'
+                'message' => 'Berhasil diteruskan.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -473,7 +490,18 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
             $temuan->last_stage += 1;
             $temuan->save();
 
@@ -494,6 +522,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Berhasil dikirim.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -508,7 +541,20 @@ class TemuanController extends Controller
         DB::beginTransaction();
         try {
             $action = 'diterima';
-            $temuan = Temuan::findOrFail($request->temuan_id);
+
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
+
             $stageNow = $temuan->stage->nama;
 
             $temuan->last_stage += 1;
@@ -532,6 +578,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Berhasil diterima.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -545,7 +596,19 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
+
             $stageNow = $temuan->stage->nama;
             $temuan->last_stage -= 1;;
             $temuan->save();
@@ -567,6 +630,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Berhasil ditolak.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -611,7 +679,18 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
             $temuan->last_stage = 3;
             $temuan->save();
 
@@ -632,6 +711,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Berhasil ditolak.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -645,7 +729,18 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
 
             $temuan->status = 2;
             $temuan->save();
@@ -667,6 +762,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Berhasil diterima.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -738,7 +838,18 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
             $temuan->status = 0;
             $temuan->last_stage = 1;
             $temuan->save();
@@ -759,6 +870,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Berhasil ditolak.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -772,7 +888,19 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
+
             $temuan->status = 3;
             $temuan->last_stage = 6;
             $temuan->save();
@@ -793,6 +921,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Temuan berhasil disimpan ke status selesai.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -806,7 +939,19 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
+
 
             $temuan->status = 1;
             $temuan->last_stage = 1;
@@ -843,6 +988,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Temuan berhasil disimpan ke status selesai.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -856,7 +1006,18 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
 
             $temuan->closing = 1;
 
@@ -889,6 +1050,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Temuan berhasil dikirim ke supervisor untuk diclosing.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -902,7 +1068,18 @@ class TemuanController extends Controller
     {
         DB::beginTransaction();
         try {
-            $temuan = Temuan::findOrFail($request->temuan_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'temuan_id' => 'required',
+            ]);
+
+            $temuan = Temuan::find($request->temuan_id);
+            if (!$temuan || $temuan->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Temuan tidak ditemukan'
+                ], 404);
+            }
 
             $temuan->status = 3;
             $temuan->last_stage = 6;
@@ -938,6 +1115,11 @@ class TemuanController extends Controller
                 'status' => true,
                 'message' => 'Temuan berhasil di closing.'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([

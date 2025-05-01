@@ -429,22 +429,18 @@ class LhaController extends Controller
     {
         DB::beginTransaction();
         try {
+            $request->validate([
+                'keterangan' => 'required',
+                'lha_id' => 'required',
+            ]);
+
             $lha = Lha::find($request->lha_id);
-            if (!$lha) {
+            if (!$lha || $lha->deleted == 1) {
                 return response()->json([
                     'status' => false,
                     'message' => 'LHA tidak ditemukan'
                 ], 404);
             }
-            if ($lha->deleted == 1) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'LHA sudah dihapus'
-                ], 404);
-            }
-            $request->validate([
-                'keterangan' => 'required',
-            ]);
 
             $lha->last_stage = 2;
             $lha->status = 1;
@@ -504,7 +500,18 @@ class LhaController extends Controller
     {
         DB::beginTransaction();
         try {
-            $lha = Lha::findOrFail($request->lha_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'lha_id' => 'required',
+            ]);
+
+            $lha = Lha::find($request->lha_id);
+            if (!$lha || $lha->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA tidak ditemukan'
+                ], 404);
+            }
 
             $lha->last_stage = 3;
 
@@ -525,6 +532,11 @@ class LhaController extends Controller
                 'status' => true,
                 'message' => 'Berhasil dikirim ke PIC'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -538,8 +550,17 @@ class LhaController extends Controller
     {
         DB::beginTransaction();
         try {
-            $lha = Lha::findOrFail($request->lha_id);
-
+            $request->validate([
+                'keterangan' => 'required',
+                'lha_id' => 'required',
+            ]);
+            $lha = Lha::find($request->lha_id);
+            if (!$lha || $lha->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA tidak ditemukan'
+                ], 404);
+            }
             $lha->temuan()->where('divisi_id', auth()->user()->divisi_id)->update([
                 'last_stage' => 4
             ]);
@@ -567,6 +588,11 @@ class LhaController extends Controller
                 'status' => true,
                 'message' => 'Berhasil dikirim ke Penanggungjawab'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -580,7 +606,17 @@ class LhaController extends Controller
     {
         DB::beginTransaction();
         try {
-            $lha = Lha::findOrFail($request->lha_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'lha_id' => 'required',
+            ]);
+            $lha = Lha::find($request->lha_id);
+            if (!$lha || $lha->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA tidak ditemukan'
+                ], 404);
+            }
 
             $lha->temuan()->where('divisi_id', auth()->user()->divisi_id)->update([
                 'last_stage' => 5
@@ -609,6 +645,11 @@ class LhaController extends Controller
                 'status' => true,
                 'message' => 'Berhasil dikirim ke Auditor'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
@@ -622,7 +663,18 @@ class LhaController extends Controller
     {
         DB::beginTransaction();
         try {
-            $lha = Lha::findOrFail($request->lha_id);
+            $request->validate([
+                'keterangan' => 'required',
+                'lha_id' => 'required',
+            ]);
+
+            $lha = Lha::find($request->lha_id);
+            if (!$lha || $lha->deleted == 1) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'LHA tidak ditemukan'
+                ], 404);
+            }
 
             $lha->last_stage = $request->last_stage - 1;
             if ($lha->last_stage == 1) {
@@ -646,6 +698,11 @@ class LhaController extends Controller
                 'status' => true,
                 'message' => 'Berhasil ditolak dan dikembalikan'
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->errors()
+            ], 422);
         } catch (\Throwable $th) {
             DB::rollBack();
             return response()->json([
