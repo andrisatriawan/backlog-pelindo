@@ -1,6 +1,6 @@
-# Laravel Backend Setup Guide
+# Backend Post Audit Monitoring & Report Setup Guide
 
-Panduan ini berisi langkah-langkah untuk menyiapkan dan menjalankan aplikasi Laravel backend di VPS untuk pertama kali.
+Panduan ini berisi langkah-langkah untuk menyiapkan dan menjalankan aplikasi backend Post Audit Monitoring & Report di VPS untuk pertama kali.
 
 ## ✅ Kebutuhan Sistem
 
@@ -11,9 +11,8 @@ Pastikan VPS/server Anda memiliki:
     -   `pdo`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `bcmath`, dll.
 
 -   Composer
--   MySQL / PostgreSQL
--   Web server (Apache / Nginx)
--   Git
+-   PostgreSQL
+-   Web server (Nginx)
 
 ## 📦 Langkah-Langkah Instalasi
 
