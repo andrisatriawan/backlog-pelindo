@@ -139,4 +139,4 @@ sudo systemctl reload nginx
 
 ## ✍️ Author
 
-Andri Satriawan – [@andrisatriawan](https://github.com/andrisatriawan)
+By Andri Satriawan – [@andrisatriawan](https://github.com/andrisatriawan)
